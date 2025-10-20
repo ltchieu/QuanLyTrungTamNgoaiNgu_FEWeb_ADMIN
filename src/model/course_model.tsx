@@ -1,8 +1,3 @@
-export interface CourseName{
-    courseId: string
-    courseName: string
-}
-
 export interface Objective {
   id: number;
   objectiveName: string;
@@ -40,10 +35,22 @@ export interface CourseModel {
   tuitionFee: number;
   numberOfSessions: number;
   video: string;
-  state: string;
-  createDate: string;
+  isActive: boolean;
+  createdDate: string;
   objectives: Objective[];
   modules: Module[];
+}
+
+export interface CourseCreateRequest {
+  courseName: string;
+  tuitionFee: number;
+  video: string;
+  description: string;
+  entryLevel: string;
+  targetLevel: string;
+  image: string; // Giả sử đây là một URL ảnh
+  objectives: { objectiveName: string }[];
+  modules: { moduleName: string; duration: number }[];
 }
 
 //Response từ API

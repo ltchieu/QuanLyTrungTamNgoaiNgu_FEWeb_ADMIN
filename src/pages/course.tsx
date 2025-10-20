@@ -15,22 +15,25 @@ import {
   TableRow,
   TablePagination,
   Checkbox,
-  Avatar,
+  IconButton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import UploadIcon from "@mui/icons-material/Upload";
-import DownloadIcon from "@mui/icons-material/Download";
 import SearchIcon from "@mui/icons-material/Search";
 import { CourseModel } from "../model/course_model";
 import { getAllCourse } from "../services/course_service";
 import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const Course: React.FC = () => {
   // State để quản lý các hàng được chọn, phân trang
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(7);
   const [courses, setCourses] = useState<CourseModel[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -54,9 +57,11 @@ const Course: React.FC = () => {
 
   useEffect(() => {
     const fetchCourse = async () => {
+      setLoading(true);
       try {
-        const res = await getAllCourse();
-        setCourses(res.data.data);
+        const res = await getAllCourse(page, rowsPerPage);
+        setCourses(res.data.data.courses);
+        setTotalItems(res.data.data.totalItems);
       } catch (error) {
         console.error("Lỗi khi tải khóa học:", error);
       } finally {
@@ -65,7 +70,7 @@ const Course: React.FC = () => {
     };
 
     fetchCourse();
-  }, []);
+  }, [page, rowsPerPage]);
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
@@ -109,6 +114,14 @@ const Course: React.FC = () => {
     setPage(0);
   };
 
+  const formatStateOfCourse = (state: boolean) => {
+    if (state === true) {
+      return "Đang mở";
+    } else {
+      return "Đóng";
+    }
+  };
+
   return (
     <Box
       component="main"
@@ -120,9 +133,15 @@ const Course: React.FC = () => {
           direction="row"
           justifyContent="space-between"
           spacing={4}
-          sx={{ mb: 4 }}
+          sx={{ mb: 3 }}
         >
-          <Typography variant="h4">Customers</Typography>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", textTransform: "uppercase" }}
+          >
+            Khóa học
+          </Typography>
+
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -181,45 +200,61 @@ const Course: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {courses
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((course) => {
-                    const isSelected = selected.includes(
-                      course.courseId.toString()
-                    );
-                    return (
-                      <TableRow
-                        hover
-                        key={course.courseId.toString()}
-                        selected={isSelected}
-                        onClick={() =>
-                          handleSelectOne(course.courseId.toString())
-                        }
-                        role="checkbox"
-                        sx={{
-                          "&.Mui-selected": {
-                            backgroundColor: "rgba(99, 91, 255, 0.08)",
-                            "&:hover": {
-                              backgroundColor: "rgba(99, 91, 255, 0.12)",
-                            },
+                {courses.map((course) => {
+                  const isSelected = selected.includes(
+                    course.courseId.toString()
+                  );
+                  return (
+                    <TableRow
+                      hover
+                      key={course.courseId.toString()}
+                      selected={isSelected}
+                      role="checkbox"
+                      sx={{
+                        "&.Mui-selected": {
+                          backgroundColor: "rgba(99, 91, 255, 0.08)",
+                          "&:hover": {
+                            backgroundColor: "rgba(99, 91, 255, 0.12)",
                           },
-                        }}
-                      >
-                        <TableCell padding="checkbox" sx={{ pl: 3 }}>
-                          <Checkbox checked={isSelected} sx={checkboxStyle} />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body1">
-                            {course.courseName}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>{course.tuitionFee}</TableCell>
-                        <TableCell>{course.createDate}</TableCell>
-                        <TableCell>{course.state}</TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    );
-                  })}
+                        },
+                      }}
+                    >
+                      <TableCell padding="checkbox" sx={{ pl: 3 }}>
+                        <Checkbox
+                          onClick={() =>
+                            handleSelectOne(course.courseId.toString())
+                          }
+                          checked={isSelected}
+                          sx={checkboxStyle}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body1">
+                          {course.courseName}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat("vi-VN").format(
+                          course.tuitionFee
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {dayjs(course.createdDate).format("DD-MM-YYYY")}
+                      </TableCell>
+                      <TableCell>
+                        {formatStateOfCourse(course.isActive)}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton>
+                          <FontAwesomeIcon icon={faPenToSquare} color="green" />
+                        </IconButton>
+                        <IconButton>
+                          <FontAwesomeIcon icon={faTrash} color="red" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Box>
@@ -227,12 +262,12 @@ const Course: React.FC = () => {
           {/* Pagination */}
           <TablePagination
             component="div"
-            count={courses.length}
+            count={totalItems}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
             page={page}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5, 10, 25]}
+            rowsPerPageOptions={[7, 14, 21]}
           />
         </Card>
       </Container>

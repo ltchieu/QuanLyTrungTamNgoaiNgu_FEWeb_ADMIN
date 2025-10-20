@@ -1,13 +1,23 @@
 // src/pages/admin/course/CreateCoursePage.tsx
-import React, { useState } from 'react';
-import { Stepper, Step, StepLabel, Box, Button, Typography, Container, Paper } from '@mui/material';
+import React, { useState } from "react";
+import {
+  Stepper,
+  Step,
+  StepLabel,
+  Box,
+  Button,
+  Typography,
+  Container,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
 
-import Step1CourseInfo from '../component/add_course_infor';
-import Step2Curriculum from '../component/add_module_objective';
-import Step3Content from '../component/add_course_content';
+import Step1CourseInfo from "../component/add_course_infor";
+import Step2Curriculum from "../component/add_module_objective";
+import Step3Content from "../component/add_course_content";
+import { useNavigate } from "react-router-dom";
+import { createNewCourse } from "../services/course_service";
 
-
-// Định nghĩa cấu trúc dữ liệu cho toàn bộ khóa học
 export interface NewCourseState {
   // Bảng khoahoc
   tenkhoahoc: string;
@@ -16,6 +26,10 @@ export interface NewCourseState {
   sobuoihoc: number;
   video: string;
   trangthai: string;
+  description: string;
+  entryLevel: string;
+  targetLevel: string;
+  image: string;
 
   // Bảng muctieukh
   muctieu: { tenmuctieu: string }[];
@@ -25,33 +39,65 @@ export interface NewCourseState {
     tenmodule: string;
     thoiluong: number;
     noidung: { tennoidung: string }[];
-    tailieu: { tenfile: string; link: string; mota: string; hinh: File | null }[];
+    tailieu: {
+      tenfile: string;
+      link: string;
+      mota: string;
+      hinh: File | null;
+    }[];
   }[];
 }
 
-const steps = ['Thông tin cơ bản', 'Mục tiêu & Chương trình', 'Nội dung chi tiết'];
+const steps = [
+  "Thông tin cơ bản",
+  "Mục tiêu & Chương trình",
+  "Nội dung chi tiết",
+];
 
 const CreateCoursePage: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
-  // Khởi tạo state với các giá trị mặc định
+  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state loading
+  const navigate = useNavigate(); // Khởi tạo hook
   const [courseData, setCourseData] = useState<NewCourseState>({
-    tenkhoahoc: '',
+    tenkhoahoc: "",
     sogiohoc: 0,
     hocphi: 0,
     sobuoihoc: 0,
-    video: '',
-    trangthai: 'Bản nháp',
+    video: "",
+    trangthai: "Bản nháp",
+    description: "",
+    entryLevel: "",
+    targetLevel: "",
+    image: "",
     muctieu: [],
     modules: [],
   });
 
-  const handleNext = () => {
-    // Trong thực tế, bạn sẽ có logic validate ở đây trước khi next
+  const handleNext = async () => {
+    // Logic validate có thể thêm ở đây
+    // ...
+
+    // Nếu là bước cuối cùng (nhấn "Hoàn tất")
     if (activeStep === steps.length - 1) {
-      // Logic gửi dữ liệu đi khi nhấn "Hoàn tất"
-      console.log('Dữ liệu khóa học hoàn chỉnh:', courseData);
-      alert('Đã tạo khóa học thành công!');
+      setIsSubmitting(true);
+      try {
+        await createNewCourse(courseData).then(() => {
+          alert("Tạo khóa học thành công!");
+          setActiveStep((prev) => prev + 1);
+
+          //Chuyển về trang danh sách khóa học sau 2 giây
+          setTimeout(() => {
+            navigate("/courses");
+          }, 2000);
+        });
+      } catch (error) {
+        console.error("Lỗi khi tạo khóa học:", error);
+        alert("Có lỗi xảy ra, vui lòng thử lại.");
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
+      // Nếu không phải bước cuối, chỉ cần đi tiếp
       setActiveStep((prev) => prev + 1);
     }
   };
@@ -86,14 +132,32 @@ const CreateCoursePage: React.FC = () => {
         ))}
       </Stepper>
 
-      <Box>{renderStepContent(activeStep)}</Box>
+      {activeStep === steps.length ? (
+        <Box sx={{ textAlign: "center", my: 4 }}>
+          <Typography variant="h5">Đã tạo khóa học thành công!</Typography>
+          <Typography>Bạn sẽ được chuyển về trang danh sách...</Typography>
+          <CircularProgress sx={{ mt: 2 }} />
+        </Box>
+      ) : (
+        renderStepContent(activeStep)
+      )}
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
         <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
           Quay lại
         </Button>
-        <Button variant="contained" onClick={handleNext}>
-          {activeStep === steps.length - 1 ? 'Hoàn tất' : 'Tiếp theo'}
+        <Button
+          variant="contained"
+          onClick={handleNext}
+          disabled={isSubmitting} // Vô hiệu hóa nút khi đang gửi
+        >
+          {isSubmitting ? (
+            <CircularProgress size={24} />
+          ) : activeStep === steps.length - 1 ? (
+            "Hoàn tất"
+          ) : (
+            "Tiếp theo"
+          )}
         </Button>
       </Box>
     </Container>
