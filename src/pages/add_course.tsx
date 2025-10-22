@@ -1,5 +1,5 @@
 // src/pages/admin/course/CreateCoursePage.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Stepper,
   Step,
@@ -10,6 +10,7 @@ import {
   Container,
   Paper,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 
 import Step1CourseInfo from "../component/add_course_infor";
@@ -18,6 +19,13 @@ import Step3Content from "../component/add_course_content";
 import { useNavigate } from "react-router-dom";
 import { createNewCourse } from "../services/course_service";
 
+export interface DocumentData {
+  tenfile: string;
+  link: string;
+  mota: string;
+  hinh: string;
+}
+
 export interface NewCourseState {
   // Bảng khoahoc
   tenkhoahoc: string;
@@ -25,7 +33,6 @@ export interface NewCourseState {
   hocphi: number;
   sobuoihoc: number;
   video: string;
-  trangthai: string;
   description: string;
   entryLevel: string;
   targetLevel: string;
@@ -39,12 +46,7 @@ export interface NewCourseState {
     tenmodule: string;
     thoiluong: number;
     noidung: { tennoidung: string }[];
-    tailieu: {
-      tenfile: string;
-      link: string;
-      mota: string;
-      hinh: File | null;
-    }[];
+    tailieu: DocumentData[];
   }[];
 }
 
@@ -56,15 +58,15 @@ const steps = [
 
 const CreateCoursePage: React.FC = () => {
   const [activeStep, setActiveStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Thêm state loading
-  const navigate = useNavigate(); // Khởi tạo hook
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
   const [courseData, setCourseData] = useState<NewCourseState>({
     tenkhoahoc: "",
     sogiohoc: 0,
     hocphi: 0,
     sobuoihoc: 0,
     video: "",
-    trangthai: "Bản nháp",
     description: "",
     entryLevel: "",
     targetLevel: "",
@@ -73,10 +75,49 @@ const CreateCoursePage: React.FC = () => {
     modules: [],
   });
 
-  const handleNext = async () => {
-    // Logic validate có thể thêm ở đây
-    // ...
+  const isStep1Valid = useMemo(() => {
+    // Kiểm tra tất cả các trường string không rỗng và số > 0
+    return (
+      courseData.tenkhoahoc.trim() !== "" &&
+      courseData.hocphi > 0 &&
+      courseData.sobuoihoc > 0 &&
+      courseData.sogiohoc > 0 &&
+      courseData.description.trim() !== "" &&
+      courseData.entryLevel.trim() !== "" &&
+      courseData.targetLevel.trim() !== "" &&
+      courseData.video.trim() !== "" &&
+      courseData.image.trim() !== ""
+    );
+  }, [courseData]);
 
+  const durationError = useMemo(() => {
+    if (activeStep !== 1) return null; // Chỉ kiểm tra khi ở Step 2
+
+    const totalDuration = courseData.modules.reduce(
+      (sum, module) => sum + (module.thoiluong || 0),
+      0
+    );
+    const requiredHours = courseData.sogiohoc || 0;
+
+    if (totalDuration != requiredHours && requiredHours > 0) {
+      // Thêm kiểm tra requiredHours > 0
+      if (totalDuration < requiredHours) {
+        return `Tổng thời lượng (${totalDuration} giờ) đang ít hơn số giờ học yêu cầu (${requiredHours} giờ).`;
+      } else {
+        return `Tổng thời lượng (${totalDuration} giờ) đang nhiều hơn số giờ học yêu cầu (${requiredHours} giờ).`;
+      }
+    }
+    return null; // Không có lỗi
+  }, [activeStep, courseData.modules, courseData.sogiohoc]);
+
+  const isNextDisabled = () => {
+    if (isSubmitting) return true;
+    if (activeStep === 0 && !isStep1Valid) return true;
+    if (activeStep === 1 && !!durationError) return true;
+    return false;
+  };
+
+  const handleNext = async () => {
     // Nếu là bước cuối cùng (nhấn "Hoàn tất")
     if (activeStep === steps.length - 1) {
       setIsSubmitting(true);
@@ -132,6 +173,19 @@ const CreateCoursePage: React.FC = () => {
         ))}
       </Stepper>
 
+      {activeStep === 1 && durationError && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {durationError}
+        </Alert>
+      )}
+
+      {activeStep === 0 && !isStep1Valid && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Vui lòng điền đầy đủ tất cả thông tin ở bước này, bao gồm cả việc tải
+          lên ảnh bìa.
+        </Alert>
+      )}
+
       {activeStep === steps.length ? (
         <Box sx={{ textAlign: "center", my: 4 }}>
           <Typography variant="h5">Đã tạo khóa học thành công!</Typography>
@@ -149,7 +203,7 @@ const CreateCoursePage: React.FC = () => {
         <Button
           variant="contained"
           onClick={handleNext}
-          disabled={isSubmitting} // Vô hiệu hóa nút khi đang gửi
+          disabled={isNextDisabled()} // Vô hiệu hóa nút khi đang gửi hoặc không thỏa điều kiện validation
         >
           {isSubmitting ? (
             <CircularProgress size={24} />

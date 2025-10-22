@@ -2,7 +2,7 @@ import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { useState } from "react";
-import { uploadCourseImage } from "../services/course_service";
+import { uploadImage } from "../services/course_service";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -31,8 +31,8 @@ const InputFileUpload: React.FC<Props> = ({ onUploadSuccess }) => {
 
     setLoading(true);
     try {
-      const response = await uploadCourseImage(file);
-      const fileUrl = response.data; 
+      const response = await uploadImage(file);
+      const fileUrl = response.data.data.fileUrl;;
 
       onUploadSuccess(fileUrl);
     } catch (error) {
@@ -49,16 +49,16 @@ const InputFileUpload: React.FC<Props> = ({ onUploadSuccess }) => {
       variant="contained"
       tabIndex={-1}
       startIcon={<CloudUploadIcon />}
+      sx={{ backgroundColor: "rgba(92, 83, 250, 1)" }}
     >
-      Upload files
+      Upload ảnh
       <VisuallyHiddenInput
         type="file"
-        onChange={(event) => console.log(event.target.files)}
-        multiple
+        onChange={handleFileChange}
         accept="image/*"
       />
     </Button>
   );
-}
+};
 
-export default InputFileUpload
+export default InputFileUpload;

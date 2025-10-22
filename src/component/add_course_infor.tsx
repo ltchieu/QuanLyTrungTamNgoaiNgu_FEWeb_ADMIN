@@ -1,8 +1,15 @@
-// src/pages/admin/course/Step1_CourseInfo.tsx
-import React from "react";
-import { TextField, Grid, MenuItem, Typography, Input } from "@mui/material";
+import React, { useState } from "react";
+import {
+  TextField,
+  Grid,
+  MenuItem,
+  Typography,
+  Input,
+  Box,
+} from "@mui/material";
 import { NewCourseState } from "../pages/add_course";
 import InputFileUpload from "./button_upload_file";
+import { getImageUrl } from "../services/course_service";
 
 interface Props {
   data: NewCourseState;
@@ -10,18 +17,27 @@ interface Props {
 }
 
 const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
+  const [isSuccess, setIsSuccess] = useState<Boolean>(false);
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+
     if (name === "video") {
       const embedLink = handleLinkYoutube(value);
+
       if (embedLink != null) {
         setData((prev) => ({
           ...prev,
           [name]: embedLink || value,
         }));
-      }
-      else {
-        alert("Lỗi khi chuyển đổi link youtube")
+        setVideoError(null);
+      } else {
+        setData((prev) => ({
+          ...prev,
+          [name]: "",
+        }));
       }
     } else {
       setData((prev) => ({
@@ -46,6 +62,18 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
       ...prev,
       image: fileUrl,
     }));
+    setIsSuccess(true);
+    const url = getImageUrl(fileUrl);
+    setImgUrl(url);
+  };
+
+  const handleVideoBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const link = event.target.value;
+    if (link && !handleLinkYoutube(link)) {
+      setVideoError("Link YouTube không hợp lệ. Vui lòng kiểm tra lại.");
+    } else {
+      setVideoError(null);
+    }
   };
 
   return (
@@ -64,8 +92,9 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
             onChange={handleChange}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid size={{ xs: 12, sm: 12 }}>
           <TextField
+            onFocus={() => {}}
             required
             name="hocphi"
             label="Học phí (VNĐ)"
@@ -88,6 +117,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            required
             name="sogiohoc"
             label="Số giờ học"
             type="number"
@@ -96,22 +126,9 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
             onChange={handleChange}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            select
-            name="trangthai"
-            label="Trạng thái"
-            fullWidth
-            value={data.trangthai}
-            onChange={handleChange}
-          >
-            <MenuItem value="Bản nháp">Bản nháp</MenuItem>
-            <MenuItem value="Công khai">Công khai</MenuItem>
-            <MenuItem value="Sắp ra mắt">Sắp ra mắt</MenuItem>
-          </TextField>
-        </Grid>
         <Grid size={{ xs: 12 }}>
           <TextField
+            required
             name="description"
             label="Mô tả khóa học"
             fullWidth
@@ -123,6 +140,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            required
             name="entryLevel"
             label="Yêu cầu đầu vào"
             fullWidth
@@ -132,6 +150,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            required
             name="targetLevel"
             label="Mục tiêu đầu ra"
             fullWidth
@@ -140,28 +159,34 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
             aria-readonly
           />
         </Grid>
-        <Grid size={{ xs: 12 }}>
+        <Grid size={{ xs: 12, sm: 12 }}>
           <TextField
+            required
             name="video"
             label="Link Video giới thiệu"
             placeholder="Dán link youtube của bạn vào đây"
             fullWidth
             value={data.video}
             onChange={handleChange}
+            onBlur={handleVideoBlur}
+            error={!!videoError}
+            helperText={videoError}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 10 }}>
-          <TextField
-            name="image"
-            label="Link ảnh bìa (URL)"
-            fullWidth
-            value={data.image}
-            onChange={handleChange}
-            slotProps={{ input: { readOnly: true } }}
-          />
+        <Grid container size={{ xs: 12, md: 12 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <InputFileUpload onUploadSuccess={handleImageUploadSuccess} />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 8 }}>
+            {imgUrl && <Box component="img" src={imgUrl} width="80%" />}
+          </Grid>
         </Grid>
-        <Grid size={{ xs: 12, sm: 2 }}>
-          <InputFileUpload onUploadSuccess={handleImageUploadSuccess}/>
+
+        <Grid size={{ xs: 12 }} display={isSuccess ? "block" : "none"}>
+          <Typography variant="h6" fontWeight="bold" color="green">
+            Upload ảnh bìa thành công
+          </Typography>
         </Grid>
       </Grid>
     </>

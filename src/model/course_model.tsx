@@ -48,13 +48,18 @@ export interface CourseCreateRequest {
   description: string;
   entryLevel: string;
   targetLevel: string;
-  image: string; // Giả sử đây là một URL ảnh
+  image: string;
   objectives: { objectiveName: string }[];
-  modules: { moduleName: string; duration: number }[];
-}
-
-//Response từ API
-export interface CourseResponse {
-  code: number;
-  data: CourseModel;
+  modules: {
+    moduleName: string;
+    duration: number;
+    documents: {
+      fileName: string;
+      link: string;
+      description: string;
+    }[];
+  contents: {
+      contentName: string;
+    }[]; 
+}[]
 }

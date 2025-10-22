@@ -148,6 +148,7 @@ const Course: React.FC = () => {
             onClick={() => {
               navigate("/addCourse");
             }}
+            sx={{backgroundColor: "#635bff", borderRadius: 3}}
           >
             Add
           </Button>
