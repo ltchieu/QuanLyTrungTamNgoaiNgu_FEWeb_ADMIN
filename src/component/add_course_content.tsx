@@ -275,6 +275,7 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                   {(module.noidung || []).map((content, contentIndex) => (
                     <ListItem
                       key={contentIndex}
+                      alignItems="flex-start"
                       secondaryAction={
                         <>
                           <IconButton
@@ -303,7 +304,15 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                         </>
                       }
                     >
-                      <ListItemText primary={content.tennoidung} />
+                      <ListItemText
+                        primary={content.tennoidung}
+                        sx={{
+                          whiteSpace: "normal",
+                          width: '100%',
+                          overflowWrap: 'break-word',
+                          mr: 7
+                        }}
+                      />
                     </ListItem>
                   ))}
                   {(!module.noidung || module.noidung.length === 0) && (
@@ -362,7 +371,13 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                     >
                       <ListItemText
                         primary={doc.tenfile}
-                        secondary={doc.link || doc.mota}
+                        secondary={doc.mota}
+                        sx={{
+                          whiteSpace: "normal",
+                          width: '100%',
+                          overflowWrap: 'break-word',
+                          mr: 7
+                        }}
                       />
                     </ListItem>
                   ))}

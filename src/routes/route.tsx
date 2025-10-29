@@ -4,6 +4,7 @@ import MainLayout from "../layouts/main_layout";
 import Course from "../pages/course";
 import CreateCoursePage from "../pages/add_course";
 import EditCourse from "../pages/edit_course";
+import Class from "../pages/class";
 
 function AppRoutes() {
   return (
@@ -12,6 +13,7 @@ function AppRoutes() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />}></Route>
           <Route path="/courses" element={<Course />}></Route>
+          <Route path="/class" element={<Class />}></Route>
           <Route path="/addCourse" element={<CreateCoursePage />}></Route>
           <Route path="/editCourse/:id" element={<EditCourse />}></Route>
         </Route>

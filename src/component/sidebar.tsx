@@ -12,18 +12,18 @@ import {
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import PeopleIcon from "@mui/icons-material/People";
-import SettingsIcon from "@mui/icons-material/Settings";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import logo from "../img/logo.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBook, faUsers } from "@fortawesome/free-solid-svg-icons";
 
 const drawerWidth = 280;
 
 const navItems = [
   { text: "Overview", icon: <DashboardIcon />, path: "/" },
-  { text: "Khóa học", icon: <PeopleIcon />, path: "/courses" },
-  { text: "Settings", icon: <SettingsIcon />, path: "/settings" },
+  { text: "Khóa học", icon: <FontAwesomeIcon icon={faBook} />, path: "/courses" },
+  { text: "Lớp học", icon: <FontAwesomeIcon icon={faUsers} />, path: "/class" },
   { text: "Account", icon: <AccountBoxIcon />, path: "/account" },
 ];
 
