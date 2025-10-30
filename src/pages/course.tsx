@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -16,10 +16,15 @@ import {
   TablePagination,
   Checkbox,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import { CourseModel } from "../model/course_model";
+import { CourseModel, DanhMuc } from "../model/course_model";
 import { changeCourseStatus, getAllCourse } from "../services/course_service";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -29,12 +34,18 @@ import { faLock, faLockOpen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import EditCourse from "./edit_course";
 
 const Course: React.FC = () => {
+  const mockDanhMucList: DanhMuc[] = [
+    { madanhmuc: 1, tendm: "IELTS Foundation" },
+    { madanhmuc: 2, tendm: "IELTS Advanced" },
+  ];
   // State để quản lý các hàng được chọn, phân trang
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(7);
   const [courses, setCourses] = useState<CourseModel[]>([]);
   const [totalItems, setTotalItems] = useState(0);
+  const [danhMucList, setDanhMucList] = useState<DanhMuc[]>([]);
+  const [selectedDanhMuc, setSelectedDanhMuc] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -71,6 +82,9 @@ const Course: React.FC = () => {
 
   useEffect(() => {
     fetchCourse();
+    setTimeout(() => {
+      setDanhMucList(mockDanhMucList);
+    }, 1000);
   }, [page, rowsPerPage]);
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,6 +114,27 @@ const Course: React.FC = () => {
       );
     }
     setSelected(newSelected);
+  };
+
+//   const filteredCourses = useMemo(() => {
+//   return courses
+//     .filter((course) => {
+//       if (selectedDanhMuc === "all") return true;
+//       return course. === Number(selectedDanhMuc);
+//     })
+//     .filter((course) => {
+//       // Nếu có ô tìm kiếm
+//       const lowerSearch = searchTerm.toLowerCase();
+//       return (
+//         course.courseName.toLowerCase().includes(lowerSearch) ||
+//         course.description.toLowerCase().includes(lowerSearch)
+//       );
+//     });
+// }, [allCourses, selectedDanhMuc, searchTerm]);
+
+  const handleCourseFilterChange = (event: SelectChangeEvent<string>) => {
+    setSelectedDanhMuc(event.target.value);
+    setPage(0);
   };
 
   // Hàm xử lý thay đổi trang
@@ -173,7 +208,7 @@ const Course: React.FC = () => {
             ...cardContainerStyle,
           }}
         >
-          <Box sx={{ p: 2, display: "flex", justifyContent: "flex-start" }}>
+          <Box sx={{ p: 2, display: "flex", justifyContent: "space-between" }}>
             <TextField
               placeholder="Search customer"
               InputProps={{
@@ -185,6 +220,23 @@ const Course: React.FC = () => {
               }}
               sx={{ width: 500, borderRadius: "16px" }}
             />
+            <FormControl sx={{ minWidth: 250 }} variant="outlined">
+              <InputLabel>Lọc theo danh mục</InputLabel>
+              <Select
+                value={selectedDanhMuc}
+                onChange={handleCourseFilterChange}
+                label="Lọc theo danh mục"
+              >
+                <MenuItem value="all">
+                  <em>Tất cả danh mục</em>
+                </MenuItem>
+                {danhMucList.map((dm) => (
+                  <MenuItem key={dm.madanhmuc} value={dm.madanhmuc}>
+                    {dm.tendm}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Card>
 
@@ -269,7 +321,11 @@ const Course: React.FC = () => {
                         <IconButton>
                           <FontAwesomeIcon icon={faTrash} color="red" />
                         </IconButton>
-                        <IconButton onClick={() => {handleToggleStatus(course.courseId)}}>
+                        <IconButton
+                          onClick={() => {
+                            handleToggleStatus(course.courseId);
+                          }}
+                        >
                           {course.isActive ? (
                             <FontAwesomeIcon icon={faLock} color="black" />
                           ) : (

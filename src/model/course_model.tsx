@@ -5,6 +5,11 @@ export interface Objective {
   objectiveName: string;
 }
 
+export interface DanhMuc {
+  madanhmuc: number;
+  tendm: string;
+}
+
 //Tài liệu của module
 export interface Document {
   documentId: number;

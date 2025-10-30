@@ -16,7 +16,7 @@ import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import logo from "../img/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faCalendar, faUsers } from "@fortawesome/free-solid-svg-icons";
 
 const drawerWidth = 280;
 
@@ -24,7 +24,7 @@ const navItems = [
   { text: "Overview", icon: <DashboardIcon />, path: "/" },
   { text: "Khóa học", icon: <FontAwesomeIcon icon={faBook} />, path: "/courses" },
   { text: "Lớp học", icon: <FontAwesomeIcon icon={faUsers} />, path: "/class" },
-  { text: "Account", icon: <AccountBoxIcon />, path: "/account" },
+  { text: "Ca học", icon: <FontAwesomeIcon icon={faCalendar} />, path: "/timetable" },
 ];
 
 export const Sidebar: React.FC = () => {
