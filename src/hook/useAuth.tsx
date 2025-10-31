@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   useEffect(() => {
-    // Setup interceptor
     setupAxiosInterceptors(
       () => accessToken,
       logout,
@@ -73,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     tryLoadSession();
-  }, [logout, refreshAccessToken]);
+  }, [accessToken, logout, refreshAccessToken]);
 
   if (isLoading) {
     return <div>Loading session...</div>;

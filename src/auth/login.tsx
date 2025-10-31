@@ -101,8 +101,9 @@ const Login = () => {
     try {
       const loginData = await loginService(loginValue);
       console.log("Đăng nhập thành công:", loginData);
-
       login(loginData);
+      console.log("Access token saved in context:", loginData.accessToken);
+
 
       navigate("/");
     } catch (err: any) {
