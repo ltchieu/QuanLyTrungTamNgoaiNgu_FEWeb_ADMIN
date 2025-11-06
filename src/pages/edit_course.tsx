@@ -36,11 +36,11 @@ const EditCourse: React.FC = () => {
             // Fetch song song
             const [courseRes, modulesRes] = await Promise.all([
                 getCourseDetail(courseIdNum),
-                getModulesByCourseId(courseIdNum) // Fetch modules riêng
+                getModulesByCourseId(courseIdNum)
             ]);
 
             // Map dữ liệu Course từ API response vào state
-            const apiCourseData = courseRes.data.data; // Giả sử dữ liệu nằm ở đây
+            const apiCourseData = courseRes.data.data;
             setCourseBaseData({
                 tenkhoahoc: apiCourseData.courseName,
                 hocphi: apiCourseData.tuitionFee,
@@ -50,7 +50,6 @@ const EditCourse: React.FC = () => {
                 targetLevel: apiCourseData.targetLevel,
                 image: apiCourseData.image,
                 sogiohoc: apiCourseData.studyHours,
-                sobuoihoc: apiCourseData.numberOfSessions,
                 muctieu: apiCourseData.objectives?.map((o: any) => ({ tenmuctieu: o.objectiveName })) || [],
             });
 

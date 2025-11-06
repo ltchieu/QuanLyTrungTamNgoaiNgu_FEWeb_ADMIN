@@ -120,10 +120,8 @@ const EditCurriculum: React.FC<Props> = ({ courseId, initialModules, objectives,
 
     return (
         <Grid container spacing={4}>
-            {/* Phần mục tiêu (Chỉ hiển thị, chưa có chức năng sửa/xóa) */}
-            <Grid size={{xs: 12, md: 6}}>
+            <Grid size={{xs: 12, md: 12}}>
                 <Typography variant="h6" gutterBottom>Mục tiêu khóa học</Typography>
-                {/* Có thể thêm nút "Thêm/Sửa mục tiêu" nếu cần */}
                 <List dense>
                     {(objectives || []).map((item, index) => (
                         <ListItem key={index} disableGutters>
@@ -137,7 +135,7 @@ const EditCurriculum: React.FC<Props> = ({ courseId, initialModules, objectives,
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }}/>
 
             {/* Phần Module */}
-            <Grid size={{xs: 12, md: 6}}>
+            <Grid size={{xs: 12, md: 12}}>
                 <Typography variant="h6" gutterBottom>Chương trình học (Modules)</Typography>
                  {/* Form Thêm Module */}
                  <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>

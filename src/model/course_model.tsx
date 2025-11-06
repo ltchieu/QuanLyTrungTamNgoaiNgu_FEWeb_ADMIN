@@ -53,6 +53,8 @@ export interface CourseCreateRequest {
   tuitionFee: number;
   video: string;
   description: string;
+  studyHours: number;
+  courseCategoryId: number;
   entryLevel: string;
   targetLevel: string;
   image: string;
@@ -64,11 +66,12 @@ export interface CourseCreateRequest {
       fileName: string;
       link: string;
       description: string;
+      image: string; 
     }[];
-  contents: {
+    contents: {
       contentName: string;
-    }[]; 
-}[]
+    }[];
+  }[];
 }
 
 export interface CourseDetails {
@@ -76,13 +79,13 @@ export interface CourseDetails {
   tenkhoahoc: string;
   sogiohoc: number;
   hocphi: number;
-  sobuoihoc: number;
   video: string;
   description: string;
   entryLevel: string;
   targetLevel: string;
   image: string;
   trangthai: boolean;
+  courseCategoryId: number | string;
 
   // Bảng muctieukh
   muctieu: { tenmuctieu: string }[];

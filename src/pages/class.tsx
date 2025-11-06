@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -21,119 +21,66 @@ import {
   Chip,
   SelectChangeEvent,
   Container,
+  Button,
+  Stack,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-
-interface KhoaHoc {
-  makhoahoc: number;
-  tenkhoahoc: string;
-}
-
-interface LopHocView {
-  malop: number;
-  tenPhong: string;
-  lichHoc: string;
-  tenGiangVien: string;
-  trangThai: string;
-  makhoahoc: number;
-}
-
-const mockKhoaHocList: KhoaHoc[] = [
-  { makhoahoc: 1, tenkhoahoc: "Khóa IELTS 7.0+" },
-  { makhoahoc: 2, tenkhoahoc: "Khóa Giao tiếp Cơ bản" },
-  { makhoahoc: 3, tenkhoahoc: "Khóa Luyện thi TOEIC" },
-];
-
-const mockLopHocList: LopHocView[] = [
-  {
-    malop: 101,
-    tenPhong: "P.A101",
-    lichHoc: "T2-T4-T6 (18:00 - 20:00)",
-    tenGiangVien: "Nguyễn Văn A",
-    trangThai: "Đang mở",
-    makhoahoc: 1,
-  },
-  {
-    malop: 102,
-    tenPhong: "P.B203",
-    lichHoc: "T3-T5-T7 (19:00 - 21:00)",
-    tenGiangVien: "Trần Thị B",
-    trangThai: "Sắp mở",
-    makhoahoc: 1,
-  },
-  {
-    malop: 103,
-    tenPhong: "P.A102",
-    lichHoc: "T2-T4 (08:00 - 10:00)",
-    tenGiangVien: "Lê Văn C",
-    trangThai: "Đã kết thúc",
-    makhoahoc: 2,
-  },
-  {
-    malop: 104,
-    tenPhong: "P.C301",
-    lichHoc: "CN (09:00 - 12:00)",
-    tenGiangVien: "Phạm Thị D",
-    trangThai: "Đang mở",
-    makhoahoc: 3,
-  },
-];
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
+import CreateClassDialog from "../component/create_class";
+import { ClassView, CourseFilterData } from "../model/class_model";
+import { getAllClasses, getCourseFilterList } from "../services/class_service";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 const ClassListPage: React.FC = () => {
-  const [allLopHoc, setAllLopHoc] = useState<LopHocView[]>([]);
-  const [khoaHocList, setKhoaHocList] = useState<KhoaHoc[]>([]);
+  // State cho dữ liệu
+  const [lopHocList, setLopHocList] = useState<ClassView[]>([]);
+  const [khoaHocList, setKhoaHocList] = useState<CourseFilterData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // State cho bộ lọc và tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
 
+  // State cho phân trang (backend)
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalRows, setTotalRows] = useState(0);
+
+  // State cho Dialog
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const navigate = useNavigate();
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const lopRes = await getAllClasses(page, rowsPerPage);
+      setLopHocList(lopRes.data.data.classes);
+      setTotalRows(lopRes.data.data.totalItems);
+    } catch (err) {
+      console.error("Lỗi khi fetch danh sách lớp:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage, selectedCourse, searchTerm]);
 
   useEffect(() => {
-    // === BẠN SẼ GỌI API THẬT Ở ĐÂY ===
-    // Ví dụ:
-    // const fetchAllData = async () => {
-    //     try {
-    //         const [lopRes, khoaHocRes] = await Promise.all([
-    //             api.getLopHocView(),
-    //             api.getKhoaHocList()
-    //         ]);
-    //         setAllLopHoc(lopRes.data);
-    //         setKhoaHocList(khoaHocRes.data);
-    //     } catch (err) {
-    //         // Xử lý lỗi
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
-    // fetchAllData();
+    fetchData();
+  }, [fetchData]);
 
-    // Giả lập API call
-    setTimeout(() => {
-      setAllLopHoc(mockLopHocList);
-      setKhoaHocList(mockKhoaHocList);
-      setLoading(false);
-    }, 1000); // Giả lập 1 giây loading
+  useEffect(() => {
+    const fetchFilterData = async () => {
+      try {
+        const khoaHocRes = await getCourseFilterList();
+        console.log(khoaHocRes)
+        setKhoaHocList(khoaHocRes);
+      } catch (err) {
+        console.error("Lỗi khi fetch danh sách khóa học:", err);
+      }
+    };
+    fetchFilterData();
   }, []);
-
-  const filteredLopHoc = useMemo(() => {
-    return allLopHoc
-      .filter((lop) => {
-        if (selectedCourse === "all") return true;
-        return lop.makhoahoc === Number(selectedCourse);
-      })
-      .filter((lop) => {
-        const lowerSearch = searchTerm.toLowerCase();
-        return (
-          lop.tenGiangVien.toLowerCase().includes(lowerSearch) ||
-          lop.tenPhong.toLowerCase().includes(lowerSearch) ||
-          lop.lichHoc.toLowerCase().includes(lowerSearch)
-        );
-      });
-  }, [allLopHoc, searchTerm, selectedCourse]);
 
   // --- Handlers ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,21 +104,45 @@ const ClassListPage: React.FC = () => {
     setPage(0);
   };
 
-  // Hàm lấy màu cho Chip trạng thái (Tùy chọn)
+  const handleCreateSuccess = () => {
+    fetchData();
+  };
+
   const getStatusChipColor = (
     status: string
   ): "success" | "warning" | "default" => {
     if (status === "Đang mở") return "success";
+
     if (status === "Sắp mở") return "warning";
+
     return "default";
   };
 
   return (
     <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
       <Paper sx={{ p: 2, borderRadius: 4 }}>
-        <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
-          Danh sách Lớp học
-        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="h5" fontWeight="bold">
+            Danh sách Lớp học
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" onClick={() => navigate("/addCourse")}>
+              Tạo khóa học mới
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              Tạo lớp học mới
+            </Button>
+          </Stack>
+        </Stack>
 
         {/* Toolbar: Tìm kiếm và Lọc */}
         <Box
@@ -192,13 +163,15 @@ const ClassListPage: React.FC = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon />
+                  <FontAwesomeIcon icon={faMagnifyingGlass} />
                 </InputAdornment>
               ),
             }}
           />
+
           <FormControl sx={{ minWidth: 250 }} variant="outlined">
             <InputLabel>Lọc theo khóa học</InputLabel>
+
             <Select
               value={selectedCourse}
               onChange={handleCourseFilterChange}
@@ -207,9 +180,10 @@ const ClassListPage: React.FC = () => {
               <MenuItem value="all">
                 <em>Tất cả khóa học</em>
               </MenuItem>
+
               {khoaHocList.map((khoaHoc) => (
-                <MenuItem key={khoaHoc.makhoahoc} value={khoaHoc.makhoahoc}>
-                  {khoaHoc.tenkhoahoc}
+                <MenuItem key={khoaHoc.courseId} value={khoaHoc.courseId}>
+                  {khoaHoc.courseName}
                 </MenuItem>
               ))}
             </Select>
@@ -225,6 +199,7 @@ const ClassListPage: React.FC = () => {
                   "& th": { fontWeight: "bold", backgroundColor: "#f9fafb" },
                 }}
               >
+                <TableCell>Tên lớp</TableCell>
                 <TableCell>Phòng học</TableCell>
                 <TableCell>Lịch học</TableCell>
                 <TableCell>Giảng viên</TableCell>
@@ -235,49 +210,35 @@ const ClassListPage: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     <CircularProgress sx={{ my: 4 }} />
                   </TableCell>
                 </TableRow>
-              ) : filteredLopHoc.length === 0 ? (
+              ) : lopHocList.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     <Typography>Không tìm thấy lớp học nào.</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredLopHoc
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((lop) => (
-                    <TableRow hover key={lop.malop}>
-                      <TableCell>{lop.tenPhong}</TableCell>
-                      <TableCell>{lop.lichHoc}</TableCell>
-                      <TableCell>{lop.tenGiangVien}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={lop.trangThai}
-                          color={getStatusChipColor(lop.trangThai)}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          // onClick={() => handleEdit(lop.malop)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          // onClick={() => handleDelete(lop.malop)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                lopHocList.map((lop: ClassView) => (
+                  <TableRow hover key={lop.malop}>
+                    <TableCell>{lop.tenlop}</TableCell>
+                    <TableCell>{lop.tenPhong}</TableCell>
+                    <TableCell>{lop.lichHoc}</TableCell>
+                    <TableCell>{lop.tenGiangVien}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={lop.trangThai}
+                        color={getStatusChipColor(lop.trangThai)}
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      {/* ... (IconButtons giữ nguyên) ... */}
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -287,13 +248,19 @@ const ClassListPage: React.FC = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredLopHoc.length}
+          count={totalRows}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+
+      <CreateClassDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </Container>
   );
 };

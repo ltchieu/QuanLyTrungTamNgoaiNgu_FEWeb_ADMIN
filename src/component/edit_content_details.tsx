@@ -1,4 +1,3 @@
-// src/component/EditContentDetails.tsx
 import React, { useState, useEffect } from "react";
 import {
   Accordion,
@@ -13,7 +12,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -104,7 +102,7 @@ const EditContentDetails: React.FC<Props> = ({
     const updatedModules = modules.map((mod, index) => {
       if (index === moduleIndex) {
         // Thêm object { contentName }
-        const newItem = { id: Date.now() * -1, contentName: newContent }; // Dùng ID tạm
+        const newItem = { id: Date.now() * -1, contentName: newContent };
         return { ...mod, contents: [...(mod.contents || []), newItem] };
       }
       return mod;

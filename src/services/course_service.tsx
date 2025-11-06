@@ -69,7 +69,9 @@ export function createNewCourse(courseData: NewCourseState) {
       contents: mod.noidung.map(content => ({
         contentName: content.tennoidung
       }))
-    }))
+    })),
+    studyHours: courseData.sogiohoc,
+    courseCategoryId: Number(courseData.courseCategoryId)
   };
   return axiosClient.post("/courses", requestData);
 }

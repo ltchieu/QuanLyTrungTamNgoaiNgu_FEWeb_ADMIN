@@ -126,7 +126,6 @@ const EditCourseInfo: React.FC<Props> = ({
     if (
       !formData.tenkhoahoc ||
       formData.hocphi <= 0 ||
-      formData.sobuoihoc <= 0 ||
       formData.sogiohoc <= 0 ||
       !formData.image
     ) {
@@ -202,22 +201,6 @@ const EditCourseInfo: React.FC<Props> = ({
               endAdornment: <InputAdornment position="end">VNĐ</InputAdornment>,
               inputProps: { inputMode: "numeric" },
             }}
-          />
-        </Grid>
-
-        {/* Số buổi học */}
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            required
-            name="sobuoihoc"
-            label="Số buổi học (*)"
-            type="number"
-            fullWidth
-            // Hiển thị giá trị số, rỗng nếu là 0
-            value={formData.sobuoihoc === 0 ? "" : formData.sobuoihoc}
-            onChange={handleChange}
-            onFocus={handleFocusSelect}
-            InputProps={{ inputProps: { min: 1 } }} // Ít nhất 1 buổi
           />
         </Grid>
 

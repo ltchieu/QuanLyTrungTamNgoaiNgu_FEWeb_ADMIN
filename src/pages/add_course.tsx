@@ -11,13 +11,22 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
 } from "@mui/material";
 
 import Step1CourseInfo from "../component/add_course_infor";
 import Step2Curriculum from "../component/add_module_objective";
 import Step3Content from "../component/add_course_content";
 import { useNavigate } from "react-router-dom";
-import { createNewCourse } from "../services/course_service";
+import { createNewCourse, getImageUrl } from "../services/course_service";
+import InputFileUpload from "../component/button_upload_file";
 
 export interface DocumentData {
   tenfile: string;
@@ -31,7 +40,7 @@ export interface NewCourseState {
   tenkhoahoc: string;
   sogiohoc: number;
   hocphi: number;
-  sobuoihoc: number;
+  courseCategoryId: number | string
   video: string;
   description: string;
   entryLevel: string;
@@ -64,8 +73,8 @@ const CreateCoursePage: React.FC = () => {
   const [courseData, setCourseData] = useState<NewCourseState>({
     tenkhoahoc: "",
     sogiohoc: 0,
+    courseCategoryId: "",
     hocphi: 0,
-    sobuoihoc: 0,
     video: "",
     description: "",
     entryLevel: "",
@@ -80,7 +89,6 @@ const CreateCoursePage: React.FC = () => {
     return (
       courseData.tenkhoahoc.trim() !== "" &&
       courseData.hocphi > 0 &&
-      courseData.sobuoihoc > 0 &&
       courseData.sogiohoc > 0 &&
       courseData.description.trim() !== "" &&
       courseData.entryLevel.trim() !== "" &&
@@ -90,130 +98,165 @@ const CreateCoursePage: React.FC = () => {
     );
   }, [courseData]);
 
-  const durationError = useMemo(() => {
-    if (activeStep !== 1) return null; // Chỉ kiểm tra khi ở Step 2
-
+const durationError = useMemo(() => {
     const totalDuration = courseData.modules.reduce(
       (sum, module) => sum + (module.thoiluong || 0),
       0
     );
     const requiredHours = courseData.sogiohoc || 0;
-
-    if (totalDuration != requiredHours && requiredHours > 0) {
-      // Thêm kiểm tra requiredHours > 0
+    if (requiredHours > 0 && totalDuration != requiredHours) {
       if (totalDuration < requiredHours) {
-        return `Tổng thời lượng (${totalDuration} giờ) đang ít hơn số giờ học yêu cầu (${requiredHours} giờ).`;
+        return `Tổng thời lượng modules (${totalDuration}h) đang ít hơn tổng số giờ học (${requiredHours}h).`;
       } else {
-        return `Tổng thời lượng (${totalDuration} giờ) đang nhiều hơn số giờ học yêu cầu (${requiredHours} giờ).`;
+        return `Tổng thời lượng modules (${totalDuration}h) đang nhiều hơn tổng số giờ học (${requiredHours}h).`;
       }
     }
-    return null; // Không có lỗi
-  }, [activeStep, courseData.modules, courseData.sogiohoc]);
+    return null;
+  }, [courseData.modules, courseData.sogiohoc]);
 
-  const isNextDisabled = () => {
-    if (isSubmitting) return true;
-    if (activeStep === 0 && !isStep1Valid) return true;
-    if (activeStep === 1 && !!durationError) return true;
-    return false;
-  };
+  const isFormInvalid = !isStep1Valid || !!durationError || isSubmitting;
 
-  const handleNext = async () => {
-    // Nếu là bước cuối cùng (nhấn "Hoàn tất")
-    if (activeStep === steps.length - 1) {
-      setIsSubmitting(true);
-      try {
-        await createNewCourse(courseData).then(() => {
-          alert("Tạo khóa học thành công!");
-          setActiveStep((prev) => prev + 1);
+  const handleSubmit = async () => {
+    if (isFormInvalid) {
+      alert("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại các thông báo lỗi.");
+      return;
+    }
 
-          //Chuyển về trang danh sách khóa học sau 2 giây
-          setTimeout(() => {
-            navigate("/courses");
-          }, 2000);
-        });
-      } catch (error) {
-        console.error("Lỗi khi tạo khóa học:", error);
-        alert("Có lỗi xảy ra, vui lòng thử lại.");
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      // Nếu không phải bước cuối, chỉ cần đi tiếp
-      setActiveStep((prev) => prev + 1);
+    setIsSubmitting(true);
+    try {
+      await createNewCourse(courseData);
+      alert("Tạo khóa học thành công!");
+      navigate("/courses");
+    } catch (error) {
+      console.error("Lỗi khi tạo khóa học:", error);
+      alert("Có lỗi xảy ra, vui lòng thử lại.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-  };
-
-  const renderStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return <Step1CourseInfo data={courseData} setData={setCourseData} />;
-      case 1:
-        return <Step2Curriculum data={courseData} setData={setCourseData} />;
-      case 2:
-        return <Step3Content data={courseData} setData={setCourseData} />;
-      default:
-        return <Typography>Đã hoàn thành!</Typography>;
-    }
+  const handleImageUploadSuccess = (fileUrl: string) => {
+    setCourseData((prev) => ({
+      ...prev,
+      image: fileUrl,
+    }));
   };
 
   return (
-    <Container component={Paper} sx={{ p: 4, mt: 4, borderRadius: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Tạo Khóa Học Mới
-      </Typography>
-      <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-        {steps.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Grid container spacing={3}>
+        {/* === CỘT BÊN TRÁI (NỘI DUNG CHÍNH) === */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Stack spacing={3}>
+            {/* --- 1. Thông tin cơ bản --- */}
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Thông tin cơ bản" />
+              <Divider />
+              <CardContent>
+                <Step1CourseInfo data={courseData} setData={setCourseData} />
+              </CardContent>
+            </Card>
 
-      {activeStep === 1 && durationError && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          {durationError}
-        </Alert>
-      )}
+            {/* --- 2. Mục tiêu khóa học --- */}
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Mục tiêu khóa học" />
+              <Divider />
+              <CardContent>
+                <Step2Curriculum data={courseData} setData={setCourseData} />
+              </CardContent>
+            </Card>
 
-      {activeStep === 0 && !isStep1Valid && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Vui lòng điền đầy đủ tất cả thông tin ở bước này, bao gồm cả việc tải
-          lên ảnh bìa.
-        </Alert>
-      )}
+            {/* --- 3. Nội dung & Tài liệu Modules --- */}
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Chi tiết chương trình học" />
+              <Divider />
+              <CardContent>
+                <Step3Content data={courseData} setData={setCourseData} />
+              </CardContent>
+            </Card>
+          </Stack>
+        </Grid>
 
-      {activeStep === steps.length ? (
-        <Box sx={{ textAlign: "center", my: 4 }}>
-          <Typography variant="h5">Đã tạo khóa học thành công!</Typography>
-          <Typography>Bạn sẽ được chuyển về trang danh sách...</Typography>
-          <CircularProgress sx={{ mt: 2 }} />
-        </Box>
-      ) : (
-        renderStepContent(activeStep)
-      )}
+        {/* === CỘT BÊN PHẢI (HÀNH ĐỘNG & ẢNH) === */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Paper
+            elevation={3}
+            sx={{
+              position: "sticky",
+              top: "80px",
+              borderRadius: 3,
+              overflow: "hidden",
+            }}
+          >
+            {/* --- 4. Ảnh bìa --- */}
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Ảnh bìa & Trạng thái
+              </Typography>
 
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 4 }}>
-        <Button disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
-          Quay lại
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={isNextDisabled()} // Vô hiệu hóa nút khi đang gửi hoặc không thỏa điều kiện validation
-        >
-          {isSubmitting ? (
-            <CircularProgress size={24} />
-          ) : activeStep === steps.length - 1 ? (
-            "Hoàn tất"
-          ) : (
-            "Tiếp theo"
-          )}
-        </Button>
-      </Box>
+              {/* Ảnh bìa */}
+              <Box sx={{ mb: 2 }}>
+                <InputFileUpload onUploadSuccess={handleImageUploadSuccess} />
+                {courseData.image && (
+                  <Box
+                    component="img"
+                    src={getImageUrl(courseData.image)}
+                    alt="Ảnh bìa xem trước"
+                    sx={{
+                      width: "100%",
+                      borderRadius: 2,
+                      mt: 2,
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                )}
+              </Box>
+            </CardContent>
+            <Divider />
+
+            {/* --- 5. Validation & Nút Lưu --- */}
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Hoàn tất
+              </Typography>
+
+              {/* Hiển thị lỗi validation */}
+              {(!isStep1Valid || durationError) && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <Typography variant="body2" fontWeight="bold">
+                    Dữ liệu chưa hợp lệ:
+                  </Typography>
+                  {!isStep1Valid && (
+                    <Typography variant="caption" display="block">
+                      - Vui lòng điền đủ thông tin cơ bản (Step 1).
+                    </Typography>
+                  )}
+                  {durationError && (
+                    <Typography variant="caption" display="block">
+                      - {durationError}
+                    </Typography>
+                  )}
+                </Alert>
+              )}
+
+              {/* Nút Lưu */}
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                onClick={handleSubmit}
+                disabled={isFormInvalid}
+              >
+                {isSubmitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Lưu khóa học"
+                )}
+              </Button>
+            </CardContent>
+          </Paper>
+        </Grid>
+      </Grid>
     </Container>
   );
 };
