@@ -27,22 +27,36 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import CreateClassDialog from "../component/create_class";
-import { ClassView, CourseFilterData } from "../model/class_model";
-import { getAllClasses, getCourseFilterList } from "../services/class_service";
+import {
+  ClassView,
+  CourseFilterData,
+  LecturerFilterData,
+  RoomFilterData,
+} from "../model/class_model";
+import {
+  getAllClasses,
+  getCourseFilterList,
+  getLecturerFilterList,
+  getRoomFilterList,
+} from "../services/class_service";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faMagnifyingGlass, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const ClassListPage: React.FC = () => {
   // State cho dữ liệu
   const [lopHocList, setLopHocList] = useState<ClassView[]>([]);
   const [khoaHocList, setKhoaHocList] = useState<CourseFilterData[]>([]);
+  const [giangVienList, setGiangVienList] = useState<LecturerFilterData[]>([]);
+  const [phongHocList, setPhongHocList] = useState<RoomFilterData[]>([]);
   const [loading, setLoading] = useState(true);
 
   // State cho bộ lọc và tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<string>("all");
+  const [selectedLecturer, setSelectedLecturer] = useState<string>("all");
+  const [selectedRoom, setSelectedRoom] = useState<string>("all");
 
-  // State cho phân trang (backend)
+  // State cho phân trang
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalRows, setTotalRows] = useState(0);
@@ -50,12 +64,11 @@ const ClassListPage: React.FC = () => {
   // State cho Dialog
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const navigate = useNavigate();
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const lopRes = await getAllClasses(page, rowsPerPage);
+
       setLopHocList(lopRes.data.data.classes);
       setTotalRows(lopRes.data.data.totalItems);
     } catch (err) {
@@ -72,11 +85,16 @@ const ClassListPage: React.FC = () => {
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
-        const khoaHocRes = await getCourseFilterList();
-        console.log(khoaHocRes)
+        const [khoaHocRes, giangVienRes, phongHocRes] = await Promise.all([
+          getCourseFilterList(),
+          getLecturerFilterList(),
+          getRoomFilterList(),
+        ]);
         setKhoaHocList(khoaHocRes);
+        setGiangVienList(giangVienRes);
+        setPhongHocList(phongHocRes);
       } catch (err) {
-        console.error("Lỗi khi fetch danh sách khóa học:", err);
+        console.error("Lỗi khi fetch các thông tin để lọc:", err);
       }
     };
     fetchFilterData();
@@ -88,11 +106,25 @@ const ClassListPage: React.FC = () => {
     setPage(0);
   };
 
-  const handleCourseFilterChange = (event: SelectChangeEvent<string>) => {
-    setSelectedCourse(event.target.value);
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+
+    switch (name) {
+      case "giangVien":
+        setSelectedLecturer(value);
+        break;
+      case "phongHoc":
+        setSelectedRoom(value);
+        break;
+      case "khoaHoc":
+        setSelectedCourse(value);
+        break;
+      default:
+        break;
+    }
+
     setPage(0);
   };
-
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
@@ -109,35 +141,40 @@ const ClassListPage: React.FC = () => {
   };
 
   const getStatusChipColor = (
-    status: string
+    status: number
   ): "success" | "warning" | "default" => {
-    if (status === "Đang mở") return "success";
+    if (status === 1) return "success";
 
-    if (status === "Sắp mở") return "warning";
+    if (status === 0) return "warning";
 
     return "default";
   };
 
+  const displayStatus = (status: string) => {
+    if(status == "1")
+      return "Đang diễn ra"
+    else
+      return "Đã đóng"
+  }
+
   return (
     <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h3" fontWeight="bold">
+        Danh sách Lớp học
+      </Typography>
       <Paper sx={{ p: 2, borderRadius: 4 }}>
         <Stack
           direction="row"
-          justifyContent="space-between"
+          justifyContent="flex-end"
           alignItems="center"
-          sx={{ mb: 2 }}
+          sx={{ mb: 4 }}
         >
-          <Typography variant="h5" fontWeight="bold">
-            Danh sách Lớp học
-          </Typography>
           <Stack direction="row" spacing={1}>
-            <Button variant="outlined" onClick={() => navigate("/addCourse")}>
-              Tạo khóa học mới
-            </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setCreateDialogOpen(true)}
+              sx={{ backgroundColor: "#635bff", borderRadius: 3 }}
             >
               Tạo lớp học mới
             </Button>
@@ -170,11 +207,54 @@ const ClassListPage: React.FC = () => {
           />
 
           <FormControl sx={{ minWidth: 250 }} variant="outlined">
+            <InputLabel>Lọc theo giảng viên</InputLabel>
+
+            <Select
+              name="giangVien"
+              value={selectedLecturer}
+              onChange={handleFilterChange}
+              label="Lọc theo giảng viên"
+            >
+              <MenuItem value="all">
+                <em>Tất cả giảng viên</em>
+              </MenuItem>
+
+              {giangVienList.map((gv) => (
+                <MenuItem key={gv.lecturerId} value={gv.lecturerId}>
+                  {gv.lecturerName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ minWidth: 250 }} variant="outlined">
+            <InputLabel>Lọc theo phòng học</InputLabel>
+
+            <Select
+              name="phongHoc"
+              value={selectedRoom}
+              onChange={handleFilterChange}
+              label="Lọc theo phòng học"
+            >
+              <MenuItem value="all">
+                <em>Tất cả phòng học</em>
+              </MenuItem>
+
+              {phongHocList.map((p) => (
+                <MenuItem key={p.roomId} value={p.roomId}>
+                  {p.roomName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ minWidth: 250 }} variant="outlined">
             <InputLabel>Lọc theo khóa học</InputLabel>
 
             <Select
+              name="khoaHoc"
               value={selectedCourse}
-              onChange={handleCourseFilterChange}
+              onChange={handleFilterChange}
               label="Lọc theo khóa học"
             >
               <MenuItem value="all">
@@ -222,20 +302,35 @@ const ClassListPage: React.FC = () => {
                 </TableRow>
               ) : (
                 lopHocList.map((lop: ClassView) => (
-                  <TableRow hover key={lop.malop}>
-                    <TableCell>{lop.tenlop}</TableCell>
-                    <TableCell>{lop.tenPhong}</TableCell>
-                    <TableCell>{lop.lichHoc}</TableCell>
-                    <TableCell>{lop.tenGiangVien}</TableCell>
+                  <TableRow hover key={lop.classId}>
+                    <TableCell>{lop.className}</TableCell>
+                    <TableCell>{lop.roomName}</TableCell>
+                    <TableCell>{lop.schedulePattern}</TableCell>
+                    <TableCell>{lop.instructorName}</TableCell>
                     <TableCell>
                       <Chip
-                        label={lop.trangThai}
-                        color={getStatusChipColor(lop.trangThai)}
+                        label={displayStatus(lop.status)}
+                        color={getStatusChipColor(Number(lop.status))}
                         size="small"
                       />
                     </TableCell>
                     <TableCell align="center">
-                      {/* ... (IconButtons giữ nguyên) ... */}
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        // onClick={() => handleEdit(lop.malop)}
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                      </IconButton>
+
+                      <IconButton
+                        size="small"
+                        color="error"
+
+                        // onClick={() => handleDelete(lop.malop)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))

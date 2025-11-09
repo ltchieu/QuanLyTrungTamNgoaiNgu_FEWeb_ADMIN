@@ -1,11 +1,10 @@
 export interface ClassView {
-  malop: number;
-  tenlop: string;
-  tenPhong: string;
-  lichHoc: string;
-  tenGiangVien: string;
-  trangThai: string;
-  makhoahoc: number;
+  classId: number;
+  className: string;
+  roomName: string;
+  schedulePattern: string;
+  instructorName: string;
+  status: string;
 }
 
 export interface CourseFilterData {

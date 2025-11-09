@@ -1,6 +1,6 @@
 import { axiosClient } from "../api/axios_client";
 import { ApiResponse } from "../model/api_respone";
-import { ClassView, ClassCreationRequest, CourseFilterData, LecturerFilterData, RoomFilterData, CheckConflictRequest } from "../model/class_model";
+import { ClassCreationRequest, CourseFilterData, LecturerFilterData, RoomFilterData, CheckConflictRequest } from "../model/class_model";
 
 export function getAllClasses(page: number, size: number) {
     const params = {

@@ -210,7 +210,7 @@ const Course: React.FC = () => {
         >
           <Box sx={{ p: 2, display: "flex", justifyContent: "space-between" }}>
             <TextField
-              placeholder="Search customer"
+              placeholder="Tìm kiếm theo tên khóa học"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

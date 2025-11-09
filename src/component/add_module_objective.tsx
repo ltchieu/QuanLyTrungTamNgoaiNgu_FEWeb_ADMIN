@@ -41,7 +41,8 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
     null
   );
 
-  const handleAddObjective = () => {
+  const handleAddObjective = (event: React.FormEvent) => {
+    event.preventDefault();
     if (newObjective.trim() !== "") {
       setData((prev) => ({
         ...prev,
@@ -58,7 +59,8 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
     }));
   };
 
-  const handleAddModule = () => {
+  const handleAddModule = (event: React.FormEvent) => {
+    event.preventDefault()
     if (newModule.tenmodule.trim() !== "" && newModule.thoiluong > 0) {
       setData((prev) => ({
         ...prev,
@@ -92,7 +94,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
 
   const handleCloseEditDialog = () => {
     setEditDialogOpen(false);
-    setEditingModule(null); // Reset khi đóng
+    setEditingModule(null);
   };
 
   const handleEditModuleChange = (
@@ -104,7 +106,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
       prev
         ? {
             ...prev,
-            [name]: name === "thoiluong" ? Number(value) || 0 : value, // Chuyển thời lượng sang số
+            [name]: name === "thoiluong" ? Number(value) || 0 : value,
           }
         : null
     );
@@ -128,13 +130,12 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
               ...module,
               tenmodule: editingModule.tenmodule,
               thoiluong: editingModule.thoiluong,
-            } // Cập nhật module đúng index
+            }
           : module
       ),
     }));
     handleCloseEditDialog();
   };
-
 
   return (
     <Grid container spacing={4}>
@@ -143,14 +144,18 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
         <Typography variant="h6" gutterBottom>
           Mục tiêu khóa học
         </Typography>
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Box
+          component="form"
+          sx={{ display: "flex", gap: 1, mb: 2 }}
+          onSubmit={handleAddObjective}
+        >
           <TextField
             label="Tên mục tiêu"
             value={newObjective}
             onChange={(e) => setNewObjective(e.target.value)}
             fullWidth
           />
-          <Button variant="outlined" onClick={handleAddObjective}>
+          <Button type="submit" variant="outlined">
             Thêm
           </Button>
         </Box>
@@ -180,7 +185,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
         <Typography variant="h6" gutterBottom>
           Chương trình học (Modules)
         </Typography>
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Box component="form" onSubmit={handleAddModule} sx={{ display: "flex", gap: 1, mb: 2 }}>
           <TextField
             label="Tên Module"
             value={newModule.tenmodule}
@@ -198,7 +203,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
             }
             sx={{ width: 150 }}
           />
-          <Button variant="outlined" onClick={handleAddModule}>
+          <Button type="submit" variant="outlined">
             Thêm
           </Button>
         </Box>
@@ -234,38 +239,45 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
           ))}
         </List>
       </Grid>
-      <Dialog open={editDialogOpen} onClose={handleCloseEditDialog} maxWidth="xs" fullWidth>
-                <DialogTitle>Chỉnh sửa Module</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        name="tenmodule"
-                        label="Tên Module"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        value={editingModule?.tenmodule || ''}
-                        onChange={handleEditModuleChange}
-                        sx={{ mt: 1 }}
-                    />
-                    <TextField
-                        margin="dense"
-                        name="thoiluong"
-                        label="Thời lượng (giờ)"
-                        type="number"
-                        fullWidth
-                        variant="outlined"
-                        value={editingModule?.thoiluong || ''}
-                        onChange={handleEditModuleChange}
-                        InputProps={{ inputProps: { min: 1 } }}
-                    />
-                </DialogContent>
-                <DialogActions sx={{ pb: 2, pr: 2 }}>
-                    <Button onClick={handleCloseEditDialog}>Hủy</Button>
-                    <Button onClick={handleSaveChanges} variant="contained">Lưu thay đổi</Button>
-                </DialogActions>
-            </Dialog>
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleCloseEditDialog}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Chỉnh sửa Module</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="tenmodule"
+            label="Tên Module"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editingModule?.tenmodule || ""}
+            onChange={handleEditModuleChange}
+            sx={{ mt: 1 }}
+          />
+          <TextField
+            margin="dense"
+            name="thoiluong"
+            label="Thời lượng (giờ)"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={editingModule?.thoiluong || ""}
+            onChange={handleEditModuleChange}
+            InputProps={{ inputProps: { min: 1 } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, pr: 2 }}>
+          <Button onClick={handleCloseEditDialog}>Hủy</Button>
+          <Button onClick={handleSaveChanges} variant="contained">
+            Lưu thay đổi
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 };

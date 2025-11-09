@@ -1,5 +1,5 @@
 import { NeatConfig, NeatGradient } from "@firecms/neat";
-import { faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Box,
@@ -18,26 +18,26 @@ import { loginService } from "../services/auth_service";
 const Login = () => {
   const gradientConfig: NeatConfig = {
     colors: [
-        {
-            color: '#005F73',
-            enabled: true,
-        },
-        {
-            color: '#0A9396',
-            enabled: true,
-        },
-        {
-            color: '#94D2BD',
-            enabled: true,
-        },
-        {
-            color: '#E9D8A6',
-            enabled: true,
-        },
-        {
-            color: '#EE9B00',
-            enabled: false,
-        },
+      {
+        color: "#005F73",
+        enabled: true,
+      },
+      {
+        color: "#0A9396",
+        enabled: true,
+      },
+      {
+        color: "#94D2BD",
+        enabled: true,
+      },
+      {
+        color: "#E9D8A6",
+        enabled: true,
+      },
+      {
+        color: "#EE9B00",
+        enabled: false,
+      },
     ],
     speed: 3,
     horizontalPressure: 5,
@@ -51,7 +51,7 @@ const Login = () => {
     colorSaturation: 7,
     wireframe: false,
     colorBlending: 10,
-    backgroundColor: '#004E64',
+    backgroundColor: "#004E64",
     backgroundAlpha: 1,
     grainScale: 3,
     grainSparsity: 0,
@@ -77,6 +77,7 @@ const Login = () => {
   const [isDisable, setIsDisable] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isHidePassword, setIsHidePassword] = useState<boolean>(true);
 
   const navigate = useNavigate();
 
@@ -95,6 +96,8 @@ const Login = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     setLoading(true);
     setError(null);
 
@@ -103,7 +106,6 @@ const Login = () => {
       console.log("Đăng nhập thành công:", loginData);
       login(loginData);
       console.log("Access token saved in context:", loginData.accessToken);
-
 
       navigate("/");
     } catch (err: any) {
@@ -159,6 +161,8 @@ const Login = () => {
         }}
       >
         <Paper
+          component="form"
+          onSubmit={handleSubmit}
           elevation={6}
           sx={{
             zIndex: 2,
@@ -203,8 +207,15 @@ const Login = () => {
               </Typography>
               <Button
                 sx={{ color: "darkgray", textTransform: "none" }}
+                onClick={() => {
+                  setIsHidePassword(!isHidePassword);
+                }}
                 startIcon={
-                  <FontAwesomeIcon icon={faEyeSlash} color="darkgray" />
+                  isHidePassword ? (
+                    <FontAwesomeIcon icon={faEyeSlash} color="darkgray" />
+                  ) : (
+                    <FontAwesomeIcon icon={faEye} color="darkgray" />
+                  )
                 }
               >
                 Hide
@@ -215,7 +226,7 @@ const Login = () => {
               placeholder="Nhập password"
               onChange={handleChange}
               required
-              type="password"
+              type={isHidePassword ? "password" : "text"}
               name="password"
               fullWidth
               sx={{ mb: "5px" }}
@@ -234,6 +245,7 @@ const Login = () => {
           </Box>
 
           <Button
+            type="submit"
             onClick={handleSubmit}
             fullWidth
             disabled={isDisable}

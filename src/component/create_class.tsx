@@ -16,6 +16,7 @@ import {
   SelectChangeEvent,
   Box,
   Typography,
+  Snackbar,
 } from "@mui/material";
 import {
   LocalizationProvider,
@@ -71,6 +72,7 @@ const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
   const [hasChecked, setHasChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { schedule, startTime, minutesPerSession, startDate } = formData;
 
@@ -204,9 +206,16 @@ const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
         startTime: dayjs(formData.startTime, "HH:mm").format("HH:mm:ss"),
       };
 
-      await createClass(requestData);
-      onSuccess();
-      onClose();
+      const res = await createClass(requestData);
+      setSuccessMessage(res.data.message)
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+      }, 1000);
+
+      <Snackbar open={!!successMessage} autoHideDuration={1500}>
+        <Alert severity="success">{successMessage}</Alert>
+      </Snackbar>;
     } catch (err: any) {
       setError(
         err.message || err.response?.data?.message || "Tạo lớp thất bại."
@@ -301,14 +310,27 @@ const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
                 />
               </Grid>
 
-              <Grid size={{xs: 12}}>
+              <Grid size={{ xs: 12 }}>
                 {isChecking ? (
-                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary'}}>
-                         <CircularProgress size={20} />
-                         <Typography variant="body2">Đang kiểm tra lịch khả dụng...</Typography>
-                     </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      color: "text.secondary",
+                    }}
+                  >
+                    <CircularProgress size={20} />
+                    <Typography variant="body2">
+                      Đang kiểm tra lịch khả dụng...
+                    </Typography>
+                  </Box>
                 ) : (
-                    showScheduleWarning && <Alert severity="info">Nhập đủ 4 trường lịch trình để tìm GV và Phòng khả dụng.</Alert>
+                  showScheduleWarning && (
+                    <Alert severity="info">
+                      Nhập đủ 4 trường lịch trình để tìm GV và Phòng khả dụng.
+                    </Alert>
+                  )
                 )}
               </Grid>
 
@@ -321,7 +343,9 @@ const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
                     label="Giảng viên"
                     onChange={handleChange}
                   >
-                    {availableLecturers.length === 0 && <MenuItem disabled>Không có GV khả dụng</MenuItem>}
+                    {availableLecturers.length === 0 && (
+                      <MenuItem disabled>Không có GV khả dụng</MenuItem>
+                    )}
                     {availableLecturers.map((l) => (
                       <MenuItem key={l.lecturerId} value={l.lecturerId}>
                         {l.lecturerName}
@@ -339,7 +363,9 @@ const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
                     label="Phòng học"
                     onChange={handleChange}
                   >
-                    {availableRooms.length === 0 && <MenuItem disabled>Không có phòng khả dụng</MenuItem>}
+                    {availableRooms.length === 0 && (
+                      <MenuItem disabled>Không có phòng khả dụng</MenuItem>
+                    )}
                     {availableRooms.map((r) => (
                       <MenuItem key={r.roomId} value={r.roomId}>
                         {r.roomName}

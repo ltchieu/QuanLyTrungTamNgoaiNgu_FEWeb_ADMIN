@@ -76,7 +76,8 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
     setActiveTabs((prev) => ({ ...prev, [moduleIndex]: newValue }));
   };
 
-  const handleAddContent = (moduleIndex: number) => {
+  const handleAddContent = (moduleIndex: number, event: React.FormEvent) => {
+    event.preventDefault()
     if (newContent.trim() === "") return;
     const newModules = data.modules.map((mod, index) => {
       if (index === moduleIndex) {
@@ -238,7 +239,6 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                 onChange={(_, val) => handleTabChange(moduleIndex, val)}
                 aria-label={`Nội dung và tài liệu cho ${module.tenmodule}`}
               >
-                {/* Thêm a11yProps */}
                 <Tab label="Nội dung bài học" {...a11yProps(0, moduleIndex)} />
                 <Tab label="Tài liệu" {...a11yProps(1, moduleIndex)} />
               </Tabs>
@@ -251,7 +251,7 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   Thêm nội dung bài học
                 </Typography>
-                <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+                <Box component="form" onSubmit={(event) => handleAddContent(moduleIndex, event)} sx={{ display: "flex", gap: 1, mb: 2 }}>
                   <TextField
                     label="Tên nội dung"
                     value={newContent}
@@ -261,7 +261,7 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
                   />
                   <Button
                     variant="outlined"
-                    onClick={() => handleAddContent(moduleIndex)}
+                    type="submit"
                     size="small"
                   >
                     Thêm
