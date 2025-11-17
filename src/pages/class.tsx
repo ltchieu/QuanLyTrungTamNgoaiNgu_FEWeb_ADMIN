@@ -58,7 +58,7 @@ const ClassListPage: React.FC = () => {
 
   // State cho phân trang
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
 
   // State cho Dialog
@@ -282,6 +282,7 @@ const ClassListPage: React.FC = () => {
                 <TableCell>Tên lớp</TableCell>
                 <TableCell>Phòng học</TableCell>
                 <TableCell>Lịch học</TableCell>
+                <TableCell>Thời gian học</TableCell>
                 <TableCell>Giảng viên</TableCell>
                 <TableCell>Trạng thái</TableCell>
                 <TableCell align="center">Hành động</TableCell>
@@ -306,6 +307,7 @@ const ClassListPage: React.FC = () => {
                     <TableCell>{lop.className}</TableCell>
                     <TableCell>{lop.roomName}</TableCell>
                     <TableCell>{lop.schedulePattern}</TableCell>
+                    <TableCell>{lop.startTime} - {lop.endTime}</TableCell>
                     <TableCell>{lop.instructorName}</TableCell>
                     <TableCell>
                       <Chip
@@ -341,7 +343,7 @@ const ClassListPage: React.FC = () => {
 
         {/* Phân trang */}
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10, 20, 30]}
           component="div"
           count={totalRows}
           rowsPerPage={rowsPerPage}

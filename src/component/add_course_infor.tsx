@@ -1,10 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Grid, Typography, Box, MenuItem } from "@mui/material";
+import {
+  TextField,
+  Grid,
+  Typography,
+  Box,
+  MenuItem,
+  Chip,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  OutlinedInput,
+  Select,
+  SelectChangeEvent,
+  Checkbox,
+  ListItemText,
+} from "@mui/material";
 import { NewCourseState } from "../pages/add_course";
 import InputFileUpload from "./button_upload_file";
-import { getImageUrl } from "../services/course_service";
+import { getAllSkills, getImageUrl } from "../services/course_service";
 import { CourseCategoryResponse } from "../model/course_category_model";
 import { getAllCategories } from "../services/course_category_service";
+import { SkillResponse } from "../model/course_model";
 
 interface Props {
   data: NewCourseState;
@@ -14,7 +30,13 @@ interface Props {
 const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
   const [videoError, setVideoError] = useState<string | null>(null);
   const [categories, setCategories] = useState<CourseCategoryResponse[]>([]);
+  const [skills, setSkills] = useState<SkillResponse[]>([]);
+  const [loadingSkills, setLoadingSkills] = useState(true);
+
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const allSkillIds = skills.map((s) => s.id);
+  const isAllSkillsSelected =
+    allSkillIds.length > 0 && data.skillIds.length === allSkillIds.length;
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -29,14 +51,34 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
         setLoadingCategories(false);
       }
     };
+
+    const fetchSkills = async () => {
+      try {
+        const res = await getAllSkills();
+        console.log("Skill response data:", res.data);
+        if (res.data) {
+          setSkills(res.data);
+        }
+      } catch (error) {
+        console.error("Lỗi khi tải kỹ năng:", error);
+      } finally {
+        setLoadingSkills(false);
+      }
+    };
+
     fetchCategories();
+    fetchSkills();
   }, []);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    event:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<any>
+  ) => {
     const { name, value } = event.target;
 
     if (name === "video") {
-      const embedLink = handleLinkYoutube(value);
+      const embedLink = handleLinkYoutube(value as string);
 
       if (embedLink != null) {
         setData((prev) => ({
@@ -49,6 +91,18 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           ...prev,
           [name]: "",
         }));
+      }
+    } else if (name === "skillIds") {
+      const selectedValues = value as (number | string)[];
+
+      if (selectedValues.includes("select-all")) {
+        if (isAllSkillsSelected) {
+          setData((prev) => ({ ...prev, skillIds: [] }));
+        } else {
+          setData((prev) => ({ ...prev, skillIds: allSkillIds }));
+        }
+      } else {
+        setData((prev) => ({ ...prev, skillIds: selectedValues.map((v) => Number(v)) }));
       }
     } else {
       setData((prev) => ({
@@ -79,18 +133,31 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
 
   const getErrorProps = (fieldName: keyof NewCourseState) => {
     let value = data[fieldName];
+    if (Array.isArray(value)) {
+      return {
+        error: value.length === 0,
+        helperText: value.length === 0 ? "Phải chọn ít nhất 1" : " ",
+      };
+    }
+
     if (typeof value === "string" && value.trim() === "") {
       return { error: true, helperText: "Không được để trống" };
     }
+
     if (typeof value === "number" && value <= 0) {
       return { error: true, helperText: "Phải là số dương" };
     }
+
+    if (fieldName === "courseCategoryId" && value === "") {
+      return { error: true, helperText: "Vui lòng chọn danh mục" };
+    }
+
     return { error: false, helperText: " " };
   };
 
   return (
     <Grid container spacing={3}>
-      <Grid size={{ xs: 12 }}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           select
           required
@@ -112,6 +179,52 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           ))}
         </TextField>
       </Grid>
+
+      <Grid size={{ xs: 12, md: 6 }}>
+        <FormControl fullWidth required {...getErrorProps("skillIds")}>
+          <InputLabel id="skill-select-label">Kỹ năng</InputLabel>
+          <Select
+            labelId="skill-select-label"
+            name="skillIds"
+            multiple
+            value={data.skillIds}
+            onChange={handleChange}
+            input={<OutlinedInput label="Kỹ năng" />}
+            renderValue={(selectedIds) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {(selectedIds as number[]).map((id) => {
+                  const skill = skills.find((s) => s.id === id);
+                  return (
+                    <Chip
+                      key={id}
+                      label={skill?.skillName || `ID ${id}`}
+                      sx={{ fontSize: 13 }}
+                    />
+                  );
+                })}
+              </Box>
+            )}
+            disabled={loadingSkills}
+          >
+            {loadingSkills && <MenuItem>Đang tải kỹ năng...</MenuItem>}
+            <MenuItem key="select-all" value="select-all">
+              <Checkbox checked={isAllSkillsSelected} />
+              <ListItemText primary="Chọn tất cả" />
+            </MenuItem>
+
+            {skills.map((skill) => (
+              <MenuItem key={skill.id} value={skill.id}>
+                <Checkbox checked={data.skillIds.indexOf(skill.id) > -1} />
+                <ListItemText primary={skill.skillName} />
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>
+            {getErrorProps("skillIds").helperText}
+          </FormHelperText>
+        </FormControl>
+      </Grid>
+
       <Grid size={{ xs: 12 }}>
         <TextField
           required
@@ -123,6 +236,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           {...getErrorProps("tenkhoahoc")}
         />
       </Grid>
+
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           required
@@ -148,7 +262,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           helperText={
             getErrorProps("sogiohoc").error
               ? getErrorProps("sogiohoc").helperText
-              : "Tổng thời lượng modules phải khớp số này"
+              : "Tổng số giờ học của toàn khóa"
           }
         />
       </Grid>
@@ -201,7 +315,6 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           helperText={videoError || getErrorProps("video").helperText}
         />
       </Grid>
-      {/* Bỏ phần upload ảnh từ đây vì đã chuyển sang cột phải */}
     </Grid>
   );
 };

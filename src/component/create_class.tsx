@@ -1,44 +1,42 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Grid,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
+  Grid,
   MenuItem,
-  CircularProgress,
-  Alert,
-  SelectChangeEvent,
-  Box,
   Typography,
-  Snackbar,
+  Box,
+  Alert,
+  AlertTitle,
+  Chip,
+  CircularProgress,
+  Stack,
+  Card,
+  CardContent,
+  CardActionArea,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
 } from "@mui/material";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { CourseFilterData } from "../model/class_model";
+import { createClass, getCourseFilterList } from "../services/class_service";
+import { checkAndSuggestSchedule } from "../services/schedule_service";
 import {
-  LocalizationProvider,
-  DatePicker,
-  TimePicker,
-} from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { Dayjs } from "dayjs";
-import {
-  CheckConflictRequest,
-  ClassCreationRequest,
-  CourseFilterData,
-  LecturerFilterData,
-  RoomFilterData,
-} from "../model/class_model";
-import {
-  getCourseFilterList,
-  createClass,
-  getAvailableLecturers,
-  getAvailableRooms,
-} from "../services/class_service";
-import { useDebounce } from "../hook/useDebounce";
+  ScheduleSuggestionResponse,
+  ScheduleAlternative,
+  ResourceOption,
+  ScheduleCheckRequest,
+} from "../model/schedule_suggestion_model";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendar, faClock } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   open: boolean;
@@ -46,367 +44,612 @@ interface Props {
   onSuccess: () => void;
 }
 
-const initialFormData: ClassCreationRequest = {
-  courseId: "",
-  className: "",
-  lecturerId: "",
-  roomId: "",
-  schedule: "",
-  startTime: "18:00",
-  minutesPerSession: 120,
-  startDate: dayjs().format("YYYY-MM-DD"),
-  note: "",
-};
+const DAY_OPTIONS = [
+  { label: "T2", value: "2" },
+  { label: "T3", value: "3" },
+  { label: "T4", value: "4" },
+  { label: "T5", value: "5" },
+  { label: "T6", value: "6" },
+  { label: "T7", value: "7" },
+  { label: "CN", value: "1" },
+];
 
 const CreateClassDialog: React.FC<Props> = ({ open, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState(initialFormData);
-  // State cho dữ liệu dropdowns
   const [courses, setCourses] = useState<CourseFilterData[]>([]);
-  const [availableLecturers, setAvailableLecturers] = useState<
-    LecturerFilterData[]
-  >([]);
-  const [availableRooms, setAvailableRooms] = useState<RoomFilterData[]>([]);
-  // State xử lý
-  const [loadingCourses, setLoadingCourses] = useState(true);
+
+  // State cho tính năng gợi ý
   const [isChecking, setIsChecking] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [suggestionResult, setSuggestionResult] =
+    useState<ScheduleSuggestionResponse | null>(null);
+
+  // Danh sách phòng/GV khả dụng
+  const [availableRooms, setAvailableRooms] = useState<ResourceOption[]>([]);
+  const [availableLecturers, setAvailableLecturers] = useState<
+    ResourceOption[]
+  >([]);
+
+  const [isCreating, setIsCreating] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { schedule, startTime, minutesPerSession, startDate } = formData;
+  const resetAllState = () => {
+    // Reset Formik về initialValues
+    formik.resetForm();
 
-  // Dùng debounce để trì hoãn việc gọi API 500ms sau khi người dùng ngừng gõ
-  const debouncedSchedule = useDebounce(schedule, 500);
-  const debouncedStartTime = useDebounce(startTime, 500);
-  const debouncedMinutes = useDebounce(minutesPerSession, 500);
-  const debouncedStartDate = useDebounce(startDate, 500);
+    // Reset các state local
+    setSuggestionResult(null);
+    setAvailableRooms([]);
+    setAvailableLecturers([]);
+    setSuccessMessage(null);
+    setIsChecking(false);
+    setIsCreating(false);
+  };
 
-  const checkAvailability = useCallback(async () => {
-    // Kiểm tra nếu 4 trường thông tin đã được điền
+  useEffect(() => {
+    const loadCourses = async () => {
+      const res = await getCourseFilterList();
+      setCourses(res);
+    };
+    if (open) loadCourses();
+  }, [open]);
+
+  const formik = useFormik({
+    initialValues: {
+      courseId: "",
+      className: "",
+      startDate: "",
+      startTime: "07:00",
+      durationMinutes: 90,
+      schedulePattern: "2-4-6",
+      roomId: "",
+      lecturerId: "",
+    },
+    validationSchema: Yup.object({
+      courseId: Yup.string().required("Bắt buộc chọn khóa học"),
+      className: Yup.string().required("Bắt buộc nhập tên lớp"),
+      startDate: Yup.string().required("Bắt buộc chọn ngày bắt đầu"),
+      roomId: Yup.string().required("Bắt buộc chọn phòng"),
+      lecturerId: Yup.string().required("Bắt buộc chọn giảng viên"),
+    }),
+    onSubmit: async (values) => {
+      setIsCreating(true);
+      try {
+        const requestData = {
+          courseId: values.courseId,
+          className: values.className,
+          lecturerId: values.lecturerId,
+          roomId: values.roomId,
+          schedule: values.schedulePattern,
+          startTime: values.startTime,
+          minutesPerSession: values.durationMinutes,
+          startDate: values.startDate,
+        };
+
+        await createClass(requestData);
+        setSuccessMessage(
+          "Tạo lớp học thành công! Cửa sổ sẽ đóng sau giây lát..."
+        );
+        setTimeout(() => {
+          onSuccess();
+          resetAllState();
+          onClose();
+        }, 2000);
+      } catch (error: any) {
+        console.error("Lỗi khi tạo lớp:", error);
+        alert(error.message || "Có lỗi xảy ra khi tạo lớp học.");
+        setIsCreating(false);
+      } finally {
+      }
+    },
+  });
+
+  // Logic: Khi user đổi ngày/giờ bằng tay -> Reset danh sách gợi ý cũ để tránh sai lệch
+  const handleManualChange = (e: React.ChangeEvent<any>) => {
+    formik.handleChange(e);
+    // Nếu thay đổi các trường ảnh hưởng lịch, clear danh sách available cũ
     if (
-      !debouncedSchedule ||
-      !debouncedStartTime ||
-      !debouncedMinutes ||
-      !debouncedStartDate
+      ["startDate", "startTime", "schedulePattern", "durationMinutes"].includes(
+        e.target.name
+      )
     ) {
-      setHasChecked(false);
-      return; // Chưa đủ thông tin để check
+      setAvailableRooms([]);
+      setAvailableLecturers([]);
+      setSuggestionResult(null);
+      //clear phòng/GV đã chọn
+      formik.setFieldValue("roomId", "");
+      formik.setFieldValue("lecturerId", "");
+    }
+  };
+
+  const handleDayChange = (dayValue: string, isChecked: boolean) => {
+    //Lấy mảng các ngày hiện tại từ chuỗi pattern
+    let currentDays = formik.values.schedulePattern
+      ? formik.values.schedulePattern.split("-").filter(Boolean)
+      : [];
+
+    //Cập nhật mảng dựa trên thao tác check/uncheck
+    if (isChecked) {
+      if (!currentDays.includes(dayValue)) currentDays.push(dayValue);
+    } else {
+      currentDays = currentDays.filter((d) => d !== dayValue);
+    }
+
+    // Sắp xếp lại theo đúng thứ tự trong DAY_OPTIONS (T2 -> CN)
+    const sortedPattern = DAY_OPTIONS.map((opt) => opt.value)
+      .filter((val) => currentDays.includes(val))
+      .join("-");
+
+    //Cập nhật Formik
+    formik.setFieldValue("schedulePattern", sortedPattern);
+
+    //Reset trạng thái gợi ý/phòng/gv (Giống như handleManualChange)
+    setAvailableRooms([]);
+    setAvailableLecturers([]);
+    setSuggestionResult(null);
+    formik.setFieldValue("roomId", "");
+    formik.setFieldValue("lecturerId", "");
+  };
+
+  // --- LOGIC CHÍNH: KIỂM TRA VÀ GỢI Ý ---
+  const handleCheckSchedule = async () => {
+    const {
+      courseId,
+      startDate,
+      startTime,
+      durationMinutes,
+      schedulePattern,
+      roomId,
+      lecturerId, // Lấy thêm roomId và lecturerId hiện tại
+    } = formik.values;
+
+    if (!courseId || !startDate || !startTime) {
+      alert(
+        "Vui lòng nhập đầy đủ thông tin khóa học và thời gian trước khi kiểm tra."
+      );
+      return;
     }
 
     setIsChecking(true);
-    setError(null);
-
-    // Reset lựa chọn cũ khi check lại
-    setAvailableLecturers([]);
-    setAvailableRooms([]);
-    setFormData((prev) => ({ ...prev, lecturerId: "", roomId: "" }));
-
-    const requestData: CheckConflictRequest = {
-      schedulePattern: debouncedSchedule,
-      startTime: dayjs(debouncedStartTime, "HH:mm").format("HH:mm:ss"),
-      durationMinutes: Number(debouncedMinutes),
-      startDate: dayjs(debouncedStartDate).format("YYYY-MM-DD"),
-    };
+    setSuggestionResult(null);
 
     try {
-      const [lecturerRes, roomRes] = await Promise.all([
-        getAvailableLecturers(requestData),
-        getAvailableRooms(requestData),
-      ]);
-      setAvailableLecturers(lecturerRes);
-      setAvailableRooms(roomRes);
-      setHasChecked(true);
-      if (lecturerRes.length === 0 || roomRes.length === 0) {
-        setError(
-          "Không tìm thấy Giảng viên hoặc Phòng học khả dụng cho lịch này."
-        );
+      //Tạo request object
+      const request: ScheduleCheckRequest = {
+        courseId: Number(courseId),
+        startDate,
+        startTime,
+        durationMinutes: Number(durationMinutes),
+        schedulePattern,
+        preferredRoomId: roomId ? Number(roomId) : null,
+        preferredLecturerId: lecturerId ? Number(lecturerId) : null,
+      };
+
+      //Gọi API
+      const result = await checkAndSuggestSchedule(request);
+      setSuggestionResult(result);
+      console.log("REQUEST check lich trùng: ", request);
+      console.log("result check lich trùng: ", suggestionResult);
+      if (result.status === "AVAILABLE") {
+        // Nếu Available: Cập nhật danh sách chọn
+        setAvailableRooms(result.availableRooms);
+        setAvailableLecturers(result.availableLecturers);
+      } else {
+        // Nếu Conflict: Xóa danh sách chọn để user phải xem gợi ý hoặc chọn lại
+        setAvailableRooms([]);
+        setAvailableLecturers([]);
+
+        //clear lựa chọn hiện tại vì nó gây conflict
+        formik.setFieldValue("roomId", "");
+        formik.setFieldValue("lecturerId", "");
       }
-    } catch (err: any) {
-      setError(err.message || "Lỗi khi kiểm tra lịch khả dụng.");
-      setHasChecked(false);
+    } catch (error) {
+      console.error("Lỗi kiểm tra lịch:", error);
+      alert("Lỗi kết nối đến server kiểm tra lịch.");
     } finally {
       setIsChecking(false);
     }
-  }, [
-    debouncedSchedule,
-    debouncedStartTime,
-    debouncedMinutes,
-    debouncedStartDate,
-  ]);
-
-  useEffect(() => {
-    if (open) {
-      // Chỉ chạy khi Dialog mở
-      checkAvailability();
-    }
-  }, [open, checkAvailability]);
-
-  useEffect(() => {
-    if (open) {
-      const fetchDropdownData = async () => {
-        setLoadingCourses(true);
-        try {
-          const courseRes = await getCourseFilterList();
-          setCourses(courseRes);
-        } catch (err) {
-          setError(
-            "Không thể tải dữ liệu cần thiết (Khóa học, Giảng viên, Phòng)."
-          );
-        } finally {
-          setLoadingCourses(false);
-        }
-      };
-      fetchDropdownData();
-    }
-  }, [open]);
-
-  const handleChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
-      | SelectChangeEvent<string | number>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name!]: value }));
   };
 
-  const handleDateChange = (date: Dayjs | null) => {
-    setFormData((prev) => ({
-      ...prev,
-      startDate: date ? date.format("YYYY-MM-DD") : "",
-    }));
+  // --- LOGIC CHÍNH: ÁP DỤNG GỢI Ý ---
+  const applyAlternative = (alt: ScheduleAlternative) => {
+    //Cập nhật form với thông tin thời gian mới
+    formik.setFieldValue("startDate", alt.startDate);
+    formik.setFieldValue("startTime", alt.startTime);
+    formik.setFieldValue("schedulePattern", alt.schedulePattern);
+
+    // Cập nhật ngay danh sách Resource từ Alternative
+    setAvailableRooms(alt.availableRooms);
+    setAvailableLecturers(alt.availableLecturers);
+
+    //Reset lựa chọn phòng/GV cũ (vì đã đổi giờ, phòng cũ chưa chắc rảnh)
+    formik.setFieldValue("roomId", "");
+    formik.setFieldValue("lecturerId", "");
+
+    setSuggestionResult(null);
   };
-
-  const handleTimeChange = (time: Dayjs | null) => {
-    setFormData((prev) => ({
-      ...prev,
-      startTime: time ? time.format("HH:mm") : "",
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      if (
-        !formData.courseId ||
-        !formData.className ||
-        !formData.lecturerId ||
-        !formData.roomId
-      ) {
-        throw new Error("Vui lòng điền đầy đủ các trường bắt buộc.");
-      }
-
-      const requestData: ClassCreationRequest = {
-        ...formData,
-        courseId: Number(formData.courseId),
-        lecturerId: Number(formData.lecturerId),
-        roomId: Number(formData.roomId),
-        minutesPerSession: Number(formData.minutesPerSession),
-        startTime: dayjs(formData.startTime, "HH:mm").format("HH:mm:ss"),
-      };
-
-      const res = await createClass(requestData);
-      setSuccessMessage(res.data.message)
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-      }, 1000);
-
-      <Snackbar open={!!successMessage} autoHideDuration={1500}>
-        <Alert severity="success">{successMessage}</Alert>
-      </Snackbar>;
-    } catch (err: any) {
-      setError(
-        err.message || err.response?.data?.message || "Tạo lớp thất bại."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const showScheduleWarning =
-    !hasChecked &&
-    !isChecking &&
-    (formData.schedule ||
-      formData.startDate ||
-      formData.startTime ||
-      Number(formData.minutesPerSession) > 0);
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>Tạo lớp học mới</DialogTitle>
-        <DialogContent>
-          {loadingCourses ? (
-            <CircularProgress
-              sx={{ display: "block", margin: "auto", my: 4 }}
-            />
-          ) : (
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12, sm: 8 }}>
-                <TextField
-                  required
-                  fullWidth
-                  name="className"
-                  label="Tên lớp học"
-                  value={formData.className}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <FormControl fullWidth required>
-                  <InputLabel>Khóa học</InputLabel>
-                  <Select
-                    name="courseId"
-                    value={formData.courseId}
-                    label="Khóa học"
-                    onChange={handleChange}
-                  >
-                    {courses.map((c) => (
-                      <MenuItem key={c.courseId} value={c.courseId}>
-                        {c.courseName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <DatePicker
-                  label="Ngày bắt đầu"
-                  value={dayjs(formData.startDate)}
-                  onChange={handleDateChange}
-                  sx={{ width: "100%" }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TimePicker
-                  label="Giờ bắt đầu"
-                  value={dayjs(formData.startTime, "HH:mm")}
-                  onChange={handleTimeChange}
-                  sx={{ width: "100%" }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
-                  required
-                  fullWidth
-                  name="minutesPerSession"
-                  label="Số phút/buổi"
-                  type="number"
-                  value={formData.minutesPerSession}
-                  onChange={handleChange}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  required
-                  fullWidth
-                  name="schedule"
-                  label="Lịch học (VD: T2-T4-T6)"
-                  value={formData.schedule}
-                  onChange={handleChange}
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12 }}>
-                {isChecking ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      color: "text.secondary",
-                    }}
-                  >
-                    <CircularProgress size={20} />
-                    <Typography variant="body2">
-                      Đang kiểm tra lịch khả dụng...
-                    </Typography>
-                  </Box>
-                ) : (
-                  showScheduleWarning && (
-                    <Alert severity="info">
-                      Nhập đủ 4 trường lịch trình để tìm GV và Phòng khả dụng.
-                    </Alert>
-                  )
-                )}
-              </Grid>
-
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormControl fullWidth required>
-                  <InputLabel>Giảng viên</InputLabel>
-                  <Select
-                    name="lecturerId"
-                    value={formData.lecturerId}
-                    label="Giảng viên"
-                    onChange={handleChange}
-                  >
-                    {availableLecturers.length === 0 && (
-                      <MenuItem disabled>Không có GV khả dụng</MenuItem>
-                    )}
-                    {availableLecturers.map((l) => (
-                      <MenuItem key={l.lecturerId} value={l.lecturerId}>
-                        {l.lecturerName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormControl fullWidth required>
-                  <InputLabel>Phòng học</InputLabel>
-                  <Select
-                    name="roomId"
-                    value={formData.roomId}
-                    label="Phòng học"
-                    onChange={handleChange}
-                  >
-                    {availableRooms.length === 0 && (
-                      <MenuItem disabled>Không có phòng khả dụng</MenuItem>
-                    )}
-                    {availableRooms.map((r) => (
-                      <MenuItem key={r.roomId} value={r.roomId}>
-                        {r.roomName}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField
-                  name="note"
-                  label="Ghi chú"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  value={formData.note}
-                  onChange={handleChange}
-                />
-              </Grid>
-              {error && (
-                <Grid size={{ xs: 12 }}>
-                  <Alert severity="error">{error}</Alert>
-                </Grid>
-              )}
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Tạo Lớp Học Mới</DialogTitle>
+      <DialogContent>
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2, mt: 1 }}>
+            {successMessage}
+          </Alert>
+        )}
+        <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1 }}>
+          <Grid container spacing={2}>
+            {/* --- 1. THÔNG TIN CƠ BẢN --- */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Khóa học"
+                name="courseId"
+                value={formik.values.courseId}
+                onChange={handleManualChange}
+                error={
+                  formik.touched.courseId && Boolean(formik.errors.courseId)
+                }
+                helperText={formik.touched.courseId && formik.errors.courseId}
+              >
+                {courses.map((c) => (
+                  <MenuItem key={c.courseId} value={c.courseId}>
+                    {c.courseName}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ pb: 2, pr: 2 }}>
-          <Button onClick={onClose} disabled={isSubmitting}>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? <CircularProgress size={24} /> : "Tạo lớp"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </LocalizationProvider>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Tên lớp"
+                name="className"
+                value={formik.values.className}
+                onChange={formik.handleChange}
+                error={
+                  formik.touched.className && Boolean(formik.errors.className)
+                }
+                helperText={formik.touched.className && formik.errors.className}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Ngày bắt đầu"
+                InputLabelProps={{ shrink: true }}
+                name="startDate"
+                value={formik.values.startDate}
+                onChange={handleManualChange}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                type="time"
+                label="Giờ học"
+                InputLabelProps={{ shrink: true }}
+                name="startTime"
+                value={formik.values.startTime}
+                onChange={handleManualChange}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <FormControl
+                component="fieldset"
+                variant="standard"
+                error={
+                  formik.touched.schedulePattern &&
+                  Boolean(formik.errors.schedulePattern)
+                }
+              >
+                <FormLabel component="legend">
+                  Lịch học trong tuần (Pattern: {formik.values.schedulePattern})
+                </FormLabel>
+                <FormGroup row>
+                  {DAY_OPTIONS.map((day) => {
+                    const isChecked = formik.values.schedulePattern
+                      ? formik.values.schedulePattern
+                          .split("-")
+                          .includes(day.value)
+                      : false;
+
+                    return (
+                      <FormControlLabel
+                        key={day.value}
+                        control={
+                          <Checkbox
+                            checked={isChecked}
+                            onChange={(e) =>
+                              handleDayChange(day.value, e.target.checked)
+                            }
+                            name={day.value}
+                          />
+                        }
+                        label={day.label}
+                      />
+                    );
+                  })}
+                </FormGroup>
+                {/* Hiển thị lỗi nếu chưa chọn ngày nào */}
+                {formik.touched.schedulePattern &&
+                  formik.errors.schedulePattern && (
+                    <Typography variant="caption" color="error">
+                      {formik.errors.schedulePattern}
+                    </Typography>
+                  )}
+              </FormControl>
+            </Grid>
+
+            {/* --- BUTTON CHECK --- */}
+            <Grid size={{ xs: 12 }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Button
+                  variant="outlined"
+                  onClick={handleCheckSchedule}
+                  disabled={isChecking}
+                  startIcon={isChecking && <CircularProgress size={20} />}
+                >
+                  {/* Đổi text nút dựa trên trạng thái */}
+                  {suggestionResult?.status === "AVAILABLE"
+                    ? "Kiểm tra lại"
+                    : "Kiểm tra lịch & Tìm phòng"}
+                </Button>
+
+                {/* Hiển thị trạng thái nhanh */}
+                {suggestionResult?.status === "AVAILABLE" && (
+                  <Chip
+                    label="Lịch khả dụng"
+                    color="success"
+                    variant="outlined"
+                  />
+                )}
+              </Stack>
+            </Grid>
+
+            {/* --- HIỂN THỊ KẾT QUẢ GỢI Ý (NẾU CONFLICT) --- */}
+            {suggestionResult && suggestionResult.status === "CONFLICT" && (
+              <Grid size={{ xs: 12 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <AlertTitle>Phát hiện xung đột!</AlertTitle>
+                  {suggestionResult.message}
+                  <Box mt={1}>
+                    {/* Hiển thị lý do xung đột phòng */}
+                    {suggestionResult.initialCheck.roomConflicts?.map(
+                      (c, i) => (
+                        <Typography
+                          key={`rc-${i}`}
+                          variant="caption"
+                          display="block"
+                          color="error"
+                        >
+                          {c.description}
+                        </Typography>
+                      )
+                    )}
+                    {/* Hiển thị lý do xung đột GV */}
+                    {suggestionResult.initialCheck.lecturerConflicts?.map(
+                      (c, i) => (
+                        <Typography
+                          key={`lc-${i}`}
+                          variant="caption"
+                          display="block"
+                          color="error"
+                        >
+                          {c.description}
+                        </Typography>
+                      )
+                    )}
+                  </Box>
+                </Alert>
+
+                <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+                  Gợi ý thay thế (Nhấn để áp dụng):
+                </Typography>
+                <Stack spacing={1} maxHeight={200} overflow="auto">
+                  {suggestionResult.alternatives.map((alt, index) => (
+                    <Card
+                      key={index}
+                      variant="outlined"
+                      sx={{
+                        // Thêm minHeight để tránh bị bẹp khi không có text
+                        minHeight: "80px",
+                        borderColor:
+                          alt.priority > 100 ? "success.main" : "grey.300",
+                        bgcolor:
+                          alt.priority > 100 ? "#f0fdf4" : "background.paper",
+                        borderWidth: alt.priority > 100 ? 2 : 1,
+                        transition: "all 0.2s",
+                        "&:hover": {
+                          borderColor: "primary.main",
+                          boxShadow: 2,
+                        },
+                      }}
+                    >
+                      <CardActionArea
+                        onClick={() => applyAlternative(alt)}
+                        sx={{ height: "100%" }}
+                      >
+                        <CardContent
+                          sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}
+                        >
+                          <Grid container spacing={1} alignItems="center">
+                            {/* Cột 1: Loại thay thế & Lý do */}
+                            <Grid size={{ xs: 12, sm: 9 }}>
+                              <Stack direction="column" spacing={0.5}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <Chip
+                                    // Xử lý hiển thị text an toàn hơn
+                                    label={
+                                      alt.type
+                                        ? alt.type.replace("ALTERNATIVE_", "")
+                                        : "GỢI Ý"
+                                    }
+                                    size="small"
+                                    color={
+                                      alt.priority > 100 ? "success" : "primary"
+                                    }
+                                    sx={{
+                                      fontWeight: "bold",
+                                      fontSize: "0.7rem",
+                                      height: 20,
+                                    }}
+                                  />
+                                  {alt.priority > 100 && (
+                                    <Chip
+                                      label="Ưu tiên"
+                                      size="small"
+                                      color="error"
+                                      variant="outlined"
+                                      sx={{ height: 20, fontSize: "0.65rem" }}
+                                    />
+                                  )}
+                                </Box>
+                                <Typography
+                                  variant="body2"
+                                  fontWeight="bold"
+                                  sx={{ lineHeight: 1.3 }}
+                                >
+                                  {alt.reason || "Phương án thay thế khả dụng"}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
+                                  }}
+                                >
+                                  <span>
+                                    <FontAwesomeIcon icon={faCalendar} />{" "}
+                                    {alt.startDate}
+                                  </span>
+                                  <span>•</span>
+                                  <span>
+                                    <FontAwesomeIcon icon={faClock} />{" "}
+                                    {alt.startTime} - {alt.endTime}
+                                  </span>
+                                </Typography>
+                              </Stack>
+                            </Grid>
+
+                            {/* Cột 2: Nút hành động / Pattern */}
+                            <Grid
+                              size={{ xs: 12, sm: 3 }}
+                              sx={{ textAlign: "right" }}
+                            >
+                              <Typography
+                                variant="caption"
+                                display="block"
+                                fontWeight="bold"
+                                color="primary.main"
+                                sx={{ mb: 0.5 }}
+                              >
+                                {alt.schedulePattern}
+                              </Typography>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                color="primary"
+                                sx={{
+                                  fontSize: "0.7rem",
+                                  py: 0.5,
+                                  minWidth: "60px",
+                                }}
+                              >
+                                Chọn
+                              </Button>
+                            </Grid>
+                          </Grid>
+                        </CardContent>
+                      </CardActionArea>
+                    </Card>
+                  ))}
+                </Stack>
+              </Grid>
+            )}
+
+            {/* --- 2. CHỌN PHÒNG & GIẢNG VIÊN (Chỉ hiện khi có list) --- */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Phòng học"
+                name="roomId"
+                value={formik.values.roomId}
+                onChange={formik.handleChange}
+                disabled={availableRooms.length === 0}
+                helperText={
+                  availableRooms.length === 0
+                    ? "Vui lòng kiểm tra lịch hợp lệ để chọn phòng"
+                    : ""
+                }
+                error={formik.touched.roomId && Boolean(formik.errors.roomId)}
+              >
+                {availableRooms.map((room) => (
+                  <MenuItem key={room.id} value={room.id}>
+                    {room.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                fullWidth
+                label="Giảng viên"
+                name="lecturerId"
+                value={formik.values.lecturerId}
+                onChange={formik.handleChange}
+                disabled={availableLecturers.length === 0}
+                helperText={
+                  availableLecturers.length === 0
+                    ? "Vui lòng kiểm tra lịch hợp lệ để chọn GV"
+                    : ""
+                }
+                error={
+                  formik.touched.lecturerId && Boolean(formik.errors.lecturerId)
+                }
+              >
+                {availableLecturers.map((lec) => (
+                  <MenuItem key={lec.id} value={lec.id}>
+                    {lec.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="inherit">
+          Hủy
+        </Button>
+        <Button
+          onClick={() => formik.handleSubmit()}
+          variant="contained"
+          // Disable nếu form lỗi HOẶC chưa chọn phòng/GV (tức là chưa check xong)
+          disabled={
+            !formik.isValid ||
+            availableRooms.length === 0 ||
+            !formik.values.roomId ||
+            !formik.values.lecturerId ||
+            isCreating
+          }
+          startIcon={
+            isCreating && <CircularProgress size={20} color="inherit" />
+          }
+        >
+          {isCreating ? "Đang tạo..." : "Tạo Lớp"}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

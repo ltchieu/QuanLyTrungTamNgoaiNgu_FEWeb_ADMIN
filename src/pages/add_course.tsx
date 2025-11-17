@@ -27,6 +27,7 @@ import Step3Content from "../component/add_course_content";
 import { useNavigate } from "react-router-dom";
 import { createNewCourse, getImageUrl } from "../services/course_service";
 import InputFileUpload from "../component/button_upload_file";
+import { CourseCreateRequest } from "../model/course_model";
 
 export interface DocumentData {
   tenfile: string;
@@ -47,13 +48,14 @@ export interface NewCourseState {
   targetLevel: string;
   image: string;
 
+   skillIds: number[];
+
   // Bảng muctieukh
   muctieu: { tenmuctieu: string }[];
 
   // Bảng module và các bảng con
   modules: {
     tenmodule: string;
-    thoiluong: number;
     noidung: { tennoidung: string }[];
     tailieu: DocumentData[];
   }[];
@@ -66,7 +68,6 @@ const steps = [
 ];
 
 const CreateCoursePage: React.FC = () => {
-  const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -79,6 +80,7 @@ const CreateCoursePage: React.FC = () => {
     description: "",
     entryLevel: "",
     targetLevel: "",
+    skillIds: [],
     image: "",
     muctieu: [],
     modules: [],
@@ -94,27 +96,14 @@ const CreateCoursePage: React.FC = () => {
       courseData.entryLevel.trim() !== "" &&
       courseData.targetLevel.trim() !== "" &&
       courseData.video.trim() !== "" &&
-      courseData.image.trim() !== ""
+      courseData.image.trim() !== "" &&
+       courseData.courseCategoryId !== "" &&
+      courseData.skillIds.length > 0
     );
   }, [courseData]);
 
-const durationError = useMemo(() => {
-    const totalDuration = courseData.modules.reduce(
-      (sum, module) => sum + (module.thoiluong || 0),
-      0
-    );
-    const requiredHours = courseData.sogiohoc || 0;
-    if (requiredHours > 0 && totalDuration != requiredHours) {
-      if (totalDuration < requiredHours) {
-        return `Tổng thời lượng modules (${totalDuration}h) đang ít hơn tổng số giờ học (${requiredHours}h).`;
-      } else {
-        return `Tổng thời lượng modules (${totalDuration}h) đang nhiều hơn tổng số giờ học (${requiredHours}h).`;
-      }
-    }
-    return null;
-  }, [courseData.modules, courseData.sogiohoc]);
 
-  const isFormInvalid = !isStep1Valid || !!durationError || isSubmitting;
+  const isFormInvalid = !isStep1Valid || isSubmitting;
 
   const handleSubmit = async () => {
     if (isFormInvalid) {
@@ -221,21 +210,14 @@ const durationError = useMemo(() => {
               </Typography>
 
               {/* Hiển thị lỗi validation */}
-              {(!isStep1Valid || durationError) && (
+              {!isStep1Valid && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   <Typography variant="body2" fontWeight="bold">
                     Dữ liệu chưa hợp lệ:
                   </Typography>
-                  {!isStep1Valid && (
-                    <Typography variant="caption" display="block">
-                      - Vui lòng điền đủ thông tin cơ bản (Step 1).
-                    </Typography>
-                  )}
-                  {durationError && (
-                    <Typography variant="caption" display="block">
-                      - {durationError}
-                    </Typography>
-                  )}
+                  <Typography variant="caption" display="block">
+                    - Vui lòng điền đủ thông tin cơ bản (Step 1), bao gồm cả Danh mục và Kỹ năng.
+                  </Typography>
                 </Alert>
               )}
 

@@ -1,5 +1,6 @@
 import { axiosClient, axiosMultipart } from "../api/axios_client";
-import { CourseCreateRequest, CourseUpdateRequest, ModuleUpdateRequest } from "../model/course_model";
+import { ApiResponse } from "../model/api_respone";
+import { CourseCreateRequest, CourseUpdateRequest, ModuleUpdateRequest, SkillResponse } from "../model/course_model";
 import { ModuleData } from "../model/module_model";
 import { NewCourseState } from "../pages/add_course";
 
@@ -39,40 +40,37 @@ export function deleteModule(moduleId: number) {
 //Tạo khóa học
 export function createNewCourse(courseData: NewCourseState) {
   // Map dữ liệu từ frontend (NewCourseState) sang backend (CourseCreateRequest)
-  const requestData: CourseCreateRequest = {
-    courseName: courseData.tenkhoahoc,
-    tuitionFee: courseData.hocphi,
-    video: courseData.video,
-    description: courseData.description,
-    entryLevel: courseData.entryLevel,
-    targetLevel: courseData.targetLevel,
-    image: courseData.image,
+ const requestData: CourseCreateRequest = {
+      courseName: courseData.tenkhoahoc,
+      tuitionFee: courseData.hocphi,
+      video: courseData.video,
+      description: courseData.description,
+      studyHours: courseData.sogiohoc,
+      courseCategoryId: Number(courseData.courseCategoryId),
+      entryLevel: courseData.entryLevel,
+      targetLevel: courseData.targetLevel,
+      image: courseData.image,
 
-    // Map danh sách mục tiêu
-    objectives: courseData.muctieu.map(obj => ({
-      objectiveName: obj.tenmuctieu
-    })),
-
-    modules: courseData.modules.map(mod => ({
-      moduleName: mod.tenmodule,
-      duration: mod.thoiluong,
-
-      // Map tài liệu
-      documents: mod.tailieu.map(doc => ({
-        fileName: doc.tenfile,
-        link: doc.link,
-        description: doc.mota,
-        image: typeof doc.hinh === 'string' ? doc.hinh : '',
+      objectives: courseData.muctieu.map((obj) => ({
+        objectiveName: obj.tenmuctieu,
       })),
 
-      // Map nội dung bài học
-      contents: mod.noidung.map(content => ({
-        contentName: content.tennoidung
-      }))
-    })),
-    studyHours: courseData.sogiohoc,
-    courseCategoryId: Number(courseData.courseCategoryId)
-  };
+      skillIds: courseData.skillIds,
+
+      modules: courseData.modules.map((mod) => ({
+        moduleName: mod.tenmodule,
+        documents: mod.tailieu.map((doc) => ({
+          fileName: doc.tenfile,
+          link: doc.link,
+          description: doc.mota,
+          image: doc.hinh,
+        })),
+        contents: mod.noidung.map((con) => ({
+          contentName: con.tennoidung,
+        })),
+      })),
+    };
+
   return axiosClient.post("/courses", requestData);
 }
 
@@ -92,3 +90,23 @@ export function changeCourseStatus(courseId: number) {
   const url = `/courses/status/${courseId}`;
   return axiosClient.post(url);
 }
+
+//Lấy danh sách các skills
+export const getAllSkills = async (): Promise<ApiResponse<SkillResponse[]>> => {
+  try {
+    const res = await axiosClient.get<ApiResponse<SkillResponse[]>>(
+      "/skills"
+    );
+
+    if (res.data) {
+      return res.data;
+    } else {
+      throw new Error("Không thể lấy danh sách kỹ năng");
+    }
+  } catch (err: any) {
+    console.error("Lỗi API getAllSkills:", err.response?.data || err.message);
+    throw new Error(
+      err.response?.data?.message || "Có lỗi xảy ra khi lấy danh sách kỹ năng"
+    );
+  }
+};

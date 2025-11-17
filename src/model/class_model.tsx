@@ -4,6 +4,8 @@ export interface ClassView {
   roomName: string;
   schedulePattern: string;
   instructorName: string;
+  startTime: string;
+  endTime: number | string;
   status: string;
 }
 
@@ -31,11 +33,4 @@ export interface ClassCreationRequest {
   minutesPerSession: number | string;
   startDate: string;
   note?: string;
-}
-
-export interface CheckConflictRequest {
-  schedulePattern: string;
-  startTime: string;
-  durationMinutes: number;
-  startDate: string;
 }

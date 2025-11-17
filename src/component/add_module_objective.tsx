@@ -11,7 +11,6 @@ import {
   Typography,
   Divider,
   Grid,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -30,12 +29,11 @@ interface Props {
 interface EditingModule {
   index: number;
   tenmodule: string;
-  thoiluong: number;
 }
 
 const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
   const [newObjective, setNewObjective] = useState("");
-  const [newModule, setNewModule] = useState({ tenmodule: "", thoiluong: 0 });
+  const [newModule, setNewModule] = useState({ tenmodule: "" });
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<EditingModule | null>(
     null
@@ -60,15 +58,16 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
   };
 
   const handleAddModule = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (newModule.tenmodule.trim() !== "" && newModule.thoiluong > 0) {
+    event.preventDefault();
+    if (newModule.tenmodule.trim() !== "") {
       setData((prev) => ({
         ...prev,
-        modules: [...prev.modules, { ...newModule, noidung: [], tailieu: [] }],
+        modules: [
+          ...prev.modules,
+          { ...newModule, noidung: [], tailieu: [] },
+        ],
       }));
-      setNewModule({ tenmodule: "", thoiluong: 0 });
-    } else if (newModule.thoiluong <= 0) {
-      alert("Thời lượng module phải lớn hơn 0.");
+      setNewModule({ tenmodule: "" });
     }
   };
 
@@ -81,13 +80,12 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
 
   // --- Handlers cho Edit Module ---
   const handleOpenEditDialog = (
-    module: { tenmodule: string; thoiluong: number },
+    module: { tenmodule: string; },
     index: number
   ) => {
     setEditingModule({
       index,
-      tenmodule: module.tenmodule,
-      thoiluong: module.thoiluong,
+      tenmodule: module.tenmodule
     });
     setEditDialogOpen(true);
   };
@@ -101,24 +99,19 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!editingModule) return;
-    const { name, value } = event.target;
     setEditingModule((prev) =>
       prev
         ? {
             ...prev,
-            [name]: name === "thoiluong" ? Number(value) || 0 : value,
+            tenmodule: event.target.value,
           }
         : null
     );
   };
 
-  const handleSaveChanges = () => {
-    if (
-      !editingModule ||
-      editingModule.tenmodule.trim() === "" ||
-      editingModule.thoiluong <= 0
-    ) {
-      alert("Tên module không được rỗng và thời lượng phải lớn hơn 0.");
+const handleSaveChanges = () => {
+    if (!editingModule || editingModule.tenmodule.trim() === "") {
+      alert("Tên module không được rỗng.");
       return;
     }
 
@@ -129,7 +122,6 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
           ? {
               ...module,
               tenmodule: editingModule.tenmodule,
-              thoiluong: editingModule.thoiluong,
             }
           : module
       ),
@@ -193,16 +185,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
               setNewModule({ ...newModule, tenmodule: e.target.value })
             }
             fullWidth
-          />
-          <TextField
-            label="Thời lượng (giờ)"
-            type="number"
-            value={newModule.thoiluong}
-            onChange={(e) =>
-              setNewModule({ ...newModule, thoiluong: Number(e.target.value) })
-            }
-            sx={{ width: 150 }}
-          />
+          />        
           <Button type="submit" variant="outlined">
             Thêm
           </Button>
@@ -233,7 +216,6 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
             >
               <ListItemText
                 primary={item.tenmodule}
-                secondary={`${item.thoiluong} giờ`}
               />
             </ListItem>
           ))}
@@ -258,17 +240,6 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
             value={editingModule?.tenmodule || ""}
             onChange={handleEditModuleChange}
             sx={{ mt: 1 }}
-          />
-          <TextField
-            margin="dense"
-            name="thoiluong"
-            label="Thời lượng (giờ)"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={editingModule?.thoiluong || ""}
-            onChange={handleEditModuleChange}
-            InputProps={{ inputProps: { min: 1 } }}
           />
         </DialogContent>
         <DialogActions sx={{ pb: 2, pr: 2 }}>

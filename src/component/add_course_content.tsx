@@ -38,7 +38,7 @@ const initialNewDocumentState: Omit<DocumentData, "hinh"> & { hinh: string } = {
   tenfile: "",
   link: "",
   mota: "",
-  hinh: "", // Sẽ lưu URL ảnh sau khi upload
+  hinh: "",
 };
 
 function a11yProps(index: number, moduleIndex: number) {
@@ -225,12 +225,6 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
             <Typography fontWeight="bold">{`Module ${moduleIndex + 1}: ${
               module.tenmodule
             }`}</Typography>
-            {/* Hiển thị thời lượng nếu có */}
-            {module.thoiluong > 0 && (
-              <Typography
-                sx={{ color: "text.secondary", ml: 1 }}
-              >{`(${module.thoiluong} giờ)`}</Typography>
-            )}
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 0 }}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>

@@ -58,15 +58,18 @@ export interface CourseCreateRequest {
   entryLevel: string;
   targetLevel: string;
   image: string;
+
   objectives: { objectiveName: string }[];
+
+  skillIds: number[];
+
   modules: {
     moduleName: string;
-    duration: number;
     documents: {
       fileName: string;
       link: string;
       description: string;
-      image: string; 
+      image: string;
     }[];
     contents: {
       contentName: string;
@@ -124,4 +127,9 @@ export interface ModuleUpdateRequest {
     id: number;
     contentName: string;
   }[];
+}
+
+export interface SkillResponse {
+  id: number;
+  skillName: string;
 }
