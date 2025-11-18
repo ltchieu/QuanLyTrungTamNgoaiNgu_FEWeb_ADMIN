@@ -1,9 +1,6 @@
 // src/pages/admin/course/CreateCoursePage.tsx
 import React, { useMemo, useState } from "react";
 import {
-  Stepper,
-  Step,
-  StepLabel,
   Box,
   Button,
   Typography,
@@ -16,9 +13,7 @@ import {
   CardHeader,
   Divider,
   Grid,
-  MenuItem,
   Stack,
-  TextField,
 } from "@mui/material";
 
 import Step1CourseInfo from "../component/add_course_infor";
@@ -27,7 +22,6 @@ import Step3Content from "../component/add_course_content";
 import { useNavigate } from "react-router-dom";
 import { createNewCourse, getImageUrl } from "../services/course_service";
 import InputFileUpload from "../component/button_upload_file";
-import { CourseCreateRequest } from "../model/course_model";
 
 export interface DocumentData {
   tenfile: string;
@@ -56,16 +50,12 @@ export interface NewCourseState {
   // Bảng module và các bảng con
   modules: {
     tenmodule: string;
+    skillId: number;
+    duration: number;
     noidung: { tennoidung: string }[];
     tailieu: DocumentData[];
   }[];
 }
-
-const steps = [
-  "Thông tin cơ bản",
-  "Mục tiêu & Chương trình",
-  "Nội dung chi tiết",
-];
 
 const CreateCoursePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,7 +138,7 @@ const CreateCoursePage: React.FC = () => {
 
             {/* --- 2. Mục tiêu khóa học --- */}
             <Card sx={{ borderRadius: 3 }}>
-              <CardHeader title="Mục tiêu khóa học" />
+              <CardHeader title="Mục tiêu và module khóa học" />
               <Divider />
               <CardContent>
                 <Step2Curriculum data={courseData} setData={setCourseData} />

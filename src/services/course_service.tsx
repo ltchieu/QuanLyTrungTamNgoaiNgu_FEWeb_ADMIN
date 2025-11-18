@@ -1,6 +1,11 @@
 import { axiosClient, axiosMultipart } from "../api/axios_client";
 import { ApiResponse } from "../model/api_respone";
-import { CourseCreateRequest, CourseUpdateRequest, ModuleUpdateRequest, SkillResponse } from "../model/course_model";
+import {
+  CourseCreateRequest,
+  CourseUpdateRequest,
+  ModuleUpdateRequest,
+  SkillResponse,
+} from "../model/course_model";
 import { ModuleData } from "../model/module_model";
 import { NewCourseState } from "../pages/add_course";
 
@@ -8,16 +13,19 @@ export function getAllCourse(page: number, size: number) {
   return axiosClient.get("/courses", {
     params: {
       page: page,
-      size: size
-    }
+      size: size,
+    },
   });
 }
 
-export function getCourseDetail(id?: number){
-    return axiosClient.get(`/courses/${id}`)
+export function getCourseDetail(id?: number) {
+  return axiosClient.get(`/courses/${id}`);
 }
 
-export function updateCourse(courseId: number, updateData: CourseUpdateRequest) {
+export function updateCourse(
+  courseId: number,
+  updateData: CourseUpdateRequest
+) {
   return axiosClient.put(`/courses/${courseId}`, updateData);
 }
 
@@ -25,51 +33,59 @@ export function getModulesByCourseId(courseId: number) {
   return axiosClient.get<ModuleData[]>("/modules", { params: { courseId } });
 }
 
-export function updateModule(moduleId: number, updateData: ModuleUpdateRequest) {
+export function updateModule(
+  moduleId: number,
+  updateData: ModuleUpdateRequest
+) {
   return axiosClient.put(`/modules/${moduleId}`, updateData);
 }
 
-export function createModule(courseId: number, moduleData: { moduleName: string; duration: number }) {
-    return axiosClient.post("/modules", { ...moduleData, courseId });
+export function createModule(
+  courseId: number,
+  moduleData: { moduleName: string; duration: number }
+) {
+  return axiosClient.post("/modules", { ...moduleData, courseId });
 }
 
 export function deleteModule(moduleId: number) {
-    return axiosClient.delete(`/modules/${moduleId}`);
+  return axiosClient.delete(`/modules/${moduleId}`);
 }
 
 //Tạo khóa học
 export function createNewCourse(courseData: NewCourseState) {
   // Map dữ liệu từ frontend (NewCourseState) sang backend (CourseCreateRequest)
- const requestData: CourseCreateRequest = {
-      courseName: courseData.tenkhoahoc,
-      tuitionFee: courseData.hocphi,
-      video: courseData.video,
-      description: courseData.description,
-      studyHours: courseData.sogiohoc,
-      courseCategoryId: Number(courseData.courseCategoryId),
-      entryLevel: courseData.entryLevel,
-      targetLevel: courseData.targetLevel,
-      image: courseData.image,
+  const requestData: CourseCreateRequest = {
+    courseName: courseData.tenkhoahoc,
+    tuitionFee: courseData.hocphi,
+    video: courseData.video,
+    description: courseData.description,
+    studyHours: courseData.sogiohoc,
+    courseCategoryId: Number(courseData.courseCategoryId),
+    entryLevel: courseData.entryLevel,
+    targetLevel: courseData.targetLevel,
+    image: courseData.image,
 
-      objectives: courseData.muctieu.map((obj) => ({
-        objectiveName: obj.tenmuctieu,
+    objectives: courseData.muctieu.map((obj) => ({
+      objectiveName: obj.tenmuctieu,
+    })),
+
+    skillIds: courseData.skillIds,
+
+    modules: courseData.modules.map((mod) => ({
+      moduleName: mod.tenmodule,
+      skillId: mod.skillId,
+      duration: mod.duration,
+      documents: mod.tailieu.map((doc) => ({
+        fileName: doc.tenfile,
+        link: doc.link,
+        description: doc.mota,
+        image: doc.hinh,
       })),
-
-      skillIds: courseData.skillIds,
-
-      modules: courseData.modules.map((mod) => ({
-        moduleName: mod.tenmodule,
-        documents: mod.tailieu.map((doc) => ({
-          fileName: doc.tenfile,
-          link: doc.link,
-          description: doc.mota,
-          image: doc.hinh,
-        })),
-        contents: mod.noidung.map((con) => ({
-          contentName: con.tennoidung,
-        })),
+      contents: mod.noidung.map((con) => ({
+        contentName: con.tennoidung,
       })),
-    };
+    })),
+  };
 
   return axiosClient.post("/courses", requestData);
 }
@@ -82,7 +98,7 @@ export function uploadImage(file: File) {
 }
 
 //Lấy đường dẫn ảnh
-export function getImageUrl(fileName: string): string{
+export function getImageUrl(fileName: string): string {
   return `${axiosClient.defaults.baseURL}/files/${fileName}`;
 }
 
@@ -94,9 +110,7 @@ export function changeCourseStatus(courseId: number) {
 //Lấy danh sách các skills
 export const getAllSkills = async (): Promise<ApiResponse<SkillResponse[]>> => {
   try {
-    const res = await axiosClient.get<ApiResponse<SkillResponse[]>>(
-      "/skills"
-    );
+    const res = await axiosClient.get<ApiResponse<SkillResponse[]>>("/skills");
 
     if (res.data) {
       return res.data;

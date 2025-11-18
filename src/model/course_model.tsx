@@ -65,6 +65,8 @@ export interface CourseCreateRequest {
 
   modules: {
     moduleName: string;
+    skillId: number;
+    duration: number;
     documents: {
       fileName: string;
       link: string;

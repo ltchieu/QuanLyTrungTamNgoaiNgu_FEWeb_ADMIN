@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
   TextField,
   Grid,
-  Typography,
   Box,
   MenuItem,
   Chip,
@@ -16,8 +15,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { NewCourseState } from "../pages/add_course";
-import InputFileUpload from "./button_upload_file";
-import { getAllSkills, getImageUrl } from "../services/course_service";
+import { getAllSkills } from "../services/course_service";
 import { CourseCategoryResponse } from "../model/course_category_model";
 import { getAllCategories } from "../services/course_category_service";
 import { SkillResponse } from "../model/course_model";
@@ -133,11 +131,18 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
 
   const getErrorProps = (fieldName: keyof NewCourseState) => {
     let value = data[fieldName];
-    if (Array.isArray(value)) {
+    if (fieldName === "skillIds") {
+        return {
+            error: data.skillIds.length === 0,
+            helperText: data.skillIds.length === 0 ? "Vui lòng chọn ít nhất 1 kỹ năng" : "",
+        };
+    }
+
+    if(fieldName === "sogiohoc"){
       return {
-        error: value.length === 0,
-        helperText: value.length === 0 ? "Phải chọn ít nhất 1" : " ",
-      };
+        error: (data.sogiohoc * 60) % 30 != 0,
+        helperText: (data.sogiohoc * 60) % 30 != 0 ? "Tổng số giờ học phải chia hết cho 30 vì mỗi buổi học ít nhất là 30 phút" : ""
+      }
     }
 
     if (typeof value === "string" && value.trim() === "") {
