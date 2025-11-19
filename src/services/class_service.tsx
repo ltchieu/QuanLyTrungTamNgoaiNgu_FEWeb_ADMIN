@@ -1,15 +1,21 @@
 import { axiosClient } from "../api/axios_client";
 import { ApiResponse } from "../model/api_respone";
-import { ClassCreationRequest, CourseFilterData, LecturerFilterData, RoomFilterData } from "../model/class_model";
+import {
+  ClassCreationRequest,
+  CourseFilterData,
+  LecturerFilterData,
+  RoomFilterData,
+} from "../model/class_model";
 
 export function getAllClasses(page: number, size: number) {
-    const params = {
-        page,
-        size
-    };
-    return axiosClient.get("/courseclasses", { params });
+  const params = {
+    page,
+    size,
+  };
+  return axiosClient.get("/courseclasses", { params });
 }
 
+//Lấy ra tên khóa học để hiển thị lên combobox
 export async function getCourseFilterList(): Promise<CourseFilterData[]> {
   try {
     const response = await axiosClient.get<ApiResponse<CourseFilterData[]>>(
@@ -28,9 +34,8 @@ export async function getCourseFilterList(): Promise<CourseFilterData[]> {
   }
 }
 
-
 export async function getLecturerFilterList(): Promise<LecturerFilterData[]> {
-   try {
+  try {
     const response = await axiosClient.get<ApiResponse<LecturerFilterData[]>>(
       "/lecturers/lecturer-name"
     );
@@ -47,9 +52,8 @@ export async function getLecturerFilterList(): Promise<LecturerFilterData[]> {
   }
 }
 
-
 export async function getRoomFilterList(): Promise<RoomFilterData[]> {
-try {
+  try {
     const response = await axiosClient.get<ApiResponse<RoomFilterData[]>>(
       "/rooms/room-name"
     );
@@ -67,5 +71,43 @@ try {
 }
 
 export function createClass(request: ClassCreationRequest) {
-    return axiosClient.post<ApiResponse<any>>("/courseclasses", request);
+  return axiosClient.post<ApiResponse<any>>("/courseclasses", request);
 }
+
+export async function changeClassStatus(classId: number) {
+  try {
+    const response = await axiosClient.post(`/courseclasses/${classId}`);
+
+    if (response.data && response.data.code === 1000) {
+      return response.data;
+    } else {
+      throw new Error(response.data?.message || "Thay đổi trạng thái thất bại");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message;
+    console.error("Thay đổi trạng thái thất bại:", message);
+    throw new Error(message);
+  }
+}
+
+export const filterClasses = async (
+  lecturerId: number | null,
+  roomId: number | null,
+  courseId: number | null,
+  searchTerm: string | null,
+) => {
+  try {
+    const response = await axiosClient.get(`courseclasses/filter`, {
+      params: {
+        lecturerId: lecturerId || null,
+        roomId: roomId || null,
+        courseId: courseId || null,
+        className: searchTerm || null
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lọc lớp học:", error);
+    throw error;
+  }
+};

@@ -313,7 +313,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
               totalAllocatedHours == data.sogiohoc &&
               data.skillIds.length > 0;
 
-            // --- TRƯỜNG HỢP 1: CHƯA HỢP LỆ -> HIỆN ALERT CẢNH BÁO ---
+            // --- TRƯỜNG HỢP 1: CHƯA HỢP LỆ ---
             if (!isStep1Valid) {
               return (
                 <Alert
@@ -353,7 +353,7 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
               );
             }
 
-            // --- TRƯỜNG HỢP 2: HỢP LỆ -> HIỆN UI NHẬP MODULE ---
+            // --- TRƯỜNG HỢP 2: HỢP LỆ ---
             return (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 {selectedSkills.map((skill) => {

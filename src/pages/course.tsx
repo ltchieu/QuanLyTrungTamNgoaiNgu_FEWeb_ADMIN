@@ -21,6 +21,8 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -47,6 +49,10 @@ const Course: React.FC = () => {
   const [danhMucList, setDanhMucList] = useState<DanhMuc[]>([]);
   const [selectedDanhMuc, setSelectedDanhMuc] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+
   const navigate = useNavigate();
 
   const cardContainerStyle = {
@@ -61,7 +67,6 @@ const Course: React.FC = () => {
   };
 
   const checkboxStyle = {
-    // Style khi checkbox được chọn
     "&.Mui-checked": {
       color: "#635bff",
     },
@@ -116,21 +121,21 @@ const Course: React.FC = () => {
     setSelected(newSelected);
   };
 
-//   const filteredCourses = useMemo(() => {
-//   return courses
-//     .filter((course) => {
-//       if (selectedDanhMuc === "all") return true;
-//       return course. === Number(selectedDanhMuc);
-//     })
-//     .filter((course) => {
-//       // Nếu có ô tìm kiếm
-//       const lowerSearch = searchTerm.toLowerCase();
-//       return (
-//         course.courseName.toLowerCase().includes(lowerSearch) ||
-//         course.description.toLowerCase().includes(lowerSearch)
-//       );
-//     });
-// }, [allCourses, selectedDanhMuc, searchTerm]);
+  //   const filteredCourses = useMemo(() => {
+  //   return courses
+  //     .filter((course) => {
+  //       if (selectedDanhMuc === "all") return true;
+  //       return course. === Number(selectedDanhMuc);
+  //     })
+  //     .filter((course) => {
+  //       // Nếu có ô tìm kiếm
+  //       const lowerSearch = searchTerm.toLowerCase();
+  //       return (
+  //         course.courseName.toLowerCase().includes(lowerSearch) ||
+  //         course.description.toLowerCase().includes(lowerSearch)
+  //       );
+  //     });
+  // }, [allCourses, selectedDanhMuc, searchTerm]);
 
   const handleCourseFilterChange = (event: SelectChangeEvent<string>) => {
     setSelectedDanhMuc(event.target.value);
@@ -154,7 +159,8 @@ const Course: React.FC = () => {
     try {
       const res = await changeCourseStatus(id);
       console.log(res.data.data);
-      alert("Đổi trạng thái thành công!");
+      setSuccessMsg("Đổi trạng thái thành công!");
+      setOpenSnackbar(true)
       fetchCourse();
     } catch (err) {
       console.error("Lỗi khi đổi trạng thái:", err);
@@ -351,6 +357,17 @@ const Course: React.FC = () => {
             rowsPerPageOptions={[7, 14, 21]}
           />
         </Card>
+
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          <Alert severity="success" onClose={() => setOpenSnackbar(false)}>
+            {successMsg}
+          </Alert>
+        </Snackbar>
       </Container>
     </Box>
   );
