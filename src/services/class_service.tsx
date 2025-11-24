@@ -2,6 +2,7 @@ import { axiosClient } from "../api/axios_client";
 import { ApiResponse } from "../model/api_respone";
 import {
   ClassCreationRequest,
+  ClassDetailResponse,
   CourseFilterData,
   LecturerFilterData,
   RoomFilterData,
@@ -95,6 +96,8 @@ export const filterClasses = async (
   roomId: number | null,
   courseId: number | null,
   searchTerm: string | null,
+  page: number,
+  size: number
 ) => {
   try {
     const response = await axiosClient.get(`courseclasses/filter`, {
@@ -102,12 +105,35 @@ export const filterClasses = async (
         lecturerId: lecturerId || null,
         roomId: roomId || null,
         courseId: courseId || null,
-        className: searchTerm || null
+        className: searchTerm || null,
+        page: page,
+        size: size
       },
     });
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lọc lớp học:", error);
+    throw error;
+  }
+};
+
+export const getClassDetail = async (id: number | string) => {
+  try {
+    const response = await axiosClient.get(`courseclasses/${id}`);
+    
+    return response.data.data as ClassDetailResponse;
+  } catch (error) {
+    console.error(`Lỗi khi lấy chi tiết lớp học ${id}:`, error);
+    throw error;
+  }
+};
+
+export const updateClass = async (classId: number | string, request: ClassCreationRequest) => {
+  try {
+    const response = await axiosClient.put(`courseclasses/${classId}`, request);
+    return response.data;
+  } catch (error) {
+    console.error(`Lỗi khi cập nhật lớp học ${classId}:`, error);
     throw error;
   }
 };

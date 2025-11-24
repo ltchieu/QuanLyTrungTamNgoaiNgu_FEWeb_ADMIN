@@ -14,15 +14,17 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import logo from "../img/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faCalendar, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faCalendar, faChalkboardUser, faTicket, faUsers } from "@fortawesome/free-solid-svg-icons";
 
 const drawerWidth = 280;
 
 const navItems = [
   { text: "Overview", icon: <DashboardIcon />, path: "/" },
   { text: "Khóa học", icon: <FontAwesomeIcon icon={faBook} />, path: "/courses" },
-  { text: "Lớp học", icon: <FontAwesomeIcon icon={faUsers} />, path: "/class" },
+  { text: "Lớp học", icon: <FontAwesomeIcon icon={faChalkboardUser} />, path: "/class" },
   { text: "Ca học", icon: <FontAwesomeIcon icon={faCalendar} />, path: "/schedule" },
+  { text: "Học viên", icon: <FontAwesomeIcon icon={faUsers} />, path: "/students" },
+  { text: "Khuyến mãi", icon:<FontAwesomeIcon icon={faTicket} />, path: "/discounts" },
 ];
 
 export const Sidebar: React.FC = () => {

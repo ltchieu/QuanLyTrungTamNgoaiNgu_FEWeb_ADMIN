@@ -104,6 +104,8 @@ const filterReducer = (
 };
 
 const ClassListPage: React.FC = () => {
+  const navigate = useNavigate();
+
   // State cho dữ liệu
   const [lopHocList, setLopHocList] = useState<ClassView[]>([]);
   const [khoaHocList, setKhoaHocList] = useState<CourseFilterData[]>([]);
@@ -126,7 +128,7 @@ const ClassListPage: React.FC = () => {
   });
 
   // State cho phân trang
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRows, setTotalRows] = useState(0);
 
@@ -168,7 +170,9 @@ const ClassListPage: React.FC = () => {
         filterQuery.lecturer,
         filterQuery.room,
         filterQuery.course,
-        filterQuery.searchTerm
+        filterQuery.searchTerm,
+        page + 1,
+        rowsPerPage
       );
 
       if (res) {
@@ -545,7 +549,7 @@ const ClassListPage: React.FC = () => {
                           <IconButton
                             size="small"
                             color="primary"
-                            // onClick={() => handleEdit(lop.malop)}
+                            onClick={() => {navigate(`/class/edit/${lop.classId}`)}}
                           >
                             <FontAwesomeIcon icon={faEdit} />
                           </IconButton>

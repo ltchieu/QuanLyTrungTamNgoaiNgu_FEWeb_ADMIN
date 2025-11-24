@@ -5,7 +5,7 @@ export interface ClassView {
   schedulePattern: string;
   instructorName: string;
   startTime: string;
-  endTime: number | string;
+  endTime: string;
   status: string;
 }
 
@@ -33,4 +33,27 @@ export interface ClassCreationRequest {
   minutesPerSession: number | string;
   startDate: string;
   note?: string;
+}
+
+export interface SessionDetail {
+  sessionId: number;
+  date: string;
+  note: string;
+  status: boolean;
+}
+
+export interface ClassDetailResponse {
+  classId: number;
+  className: string;
+  courseName: string;
+  schedulePattern: string;
+  startTime: string;       
+  endTime: string;
+  minutePerSession: number; 
+  startDate: string;
+  endDate: string;      
+  roomName: string;
+  instructorName: string;
+  totalSessions: number;
+  sessions: SessionDetail[];
 }
