@@ -7,7 +7,7 @@ import {
   SkillResponse,
 } from "../model/course_model";
 import { ModuleData } from "../model/module_model";
-import { NewCourseState } from "../pages/add_course";
+import { NewCourseState } from "../pages/admin/add_course";
 
 export function getAllCourse(page: number, size: number) {
   return axiosClient.get("/courses", {

@@ -10,16 +10,16 @@ import {
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleIcon from "@mui/icons-material/People";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import { SummaryCard } from "../component/summary_card";
-import { SalesChart } from "../component/sale_card";
-import { TrafficSourceChart } from "../component/traffic_source";
+import { SummaryCard } from "../../component/summary_card";
+import { SalesChart } from "../../component/sale_card";
+import { TrafficSourceChart } from "../../component/traffic_source";
 
 const DashboardPage: React.FC = () => {
   return (
     <Container maxWidth={false} sx={{ py: 4 }}>
-       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-          <Typography color="text.primary">Dashboard</Typography>
-        </Breadcrumbs>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Typography color="text.primary">Dashboard</Typography>
+      </Breadcrumbs>
       <Typography variant="h4" sx={{ mb: 4, fontWeight: "bold" }}>
         Overview
       </Typography>
@@ -44,10 +44,10 @@ const DashboardPage: React.FC = () => {
           />
         </Grid>
         <Grid size={{ md: 3, sm: 6, xs: 12 }}>
-          
+
           <Card sx={{ height: "100%", borderRadius: 4, boxShadow: 3 }}>
             <CardContent>
-              
+
               <Typography color="text.secondary" variant="overline">
                 Task Progress
               </Typography>

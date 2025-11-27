@@ -22,7 +22,7 @@ import * as Yup from "yup";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { createTeacher } from "../services/teacher_service";
+import { createTeacher } from "../../services/teacher_service";
 
 const AddTeacherPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +37,6 @@ const AddTeacherPage: React.FC = () => {
       email: "",
       diachi: "",
       anhdaidien: "",
-      trinhdo: "",
       mota: "",
     },
     validationSchema: Yup.object({
@@ -46,7 +45,6 @@ const AddTeacherPage: React.FC = () => {
       sdt: Yup.string().required("Vui lòng nhập số điện thoại"),
       email: Yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
       diachi: Yup.string().required("Vui lòng nhập địa chỉ"),
-      trinhdo: Yup.string().required("Vui lòng nhập trình độ"),
     }),
     onSubmit: async (values) => {
       setIsSubmitting(true);
@@ -59,7 +57,7 @@ const AddTeacherPage: React.FC = () => {
           email: values.email,
           diachi: values.diachi,
           anhdaidien: values.anhdaidien || "https://via.placeholder.com/150",
-          trinhdo: values.trinhdo,
+          bangCaps: [], // Initialize with empty degrees
           mota: values.mota,
         });
         alert("Thêm giảng viên thành công!");
@@ -186,15 +184,7 @@ const AddTeacherPage: React.FC = () => {
                   Thông tin chuyên môn
                 </Typography>
                 <Stack spacing={3}>
-                  <TextField
-                    fullWidth
-                    label="Trình độ"
-                    name="trinhdo"
-                    value={formik.values.trinhdo}
-                    onChange={formik.handleChange}
-                    error={formik.touched.trinhdo && Boolean(formik.errors.trinhdo)}
-                    helperText={formik.touched.trinhdo && formik.errors.trinhdo}
-                  />
+
 
                   <TextField
                     fullWidth

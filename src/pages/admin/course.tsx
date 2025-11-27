@@ -28,8 +28,8 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import { CourseModel, DanhMuc } from "../model/course_model";
-import { changeCourseStatus, getAllCourse } from "../services/course_service";
+import { CourseModel, DanhMuc } from "../../model/course_model";
+import { changeCourseStatus, getAllCourse } from "../../services/course_service";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

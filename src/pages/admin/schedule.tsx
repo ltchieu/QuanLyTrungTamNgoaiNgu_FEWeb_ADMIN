@@ -32,14 +32,14 @@ import {
   CourseFilterData,
   LecturerFilterData,
   RoomFilterData,
-} from "../model/class_model";
-import { Session, WeeklyScheduleResponse } from "../model/schedule_model";
+} from "../../model/class_model";
+import { Session, WeeklyScheduleResponse } from "../../model/schedule_model";
 import {
   getCourseFilterList,
   getLecturerFilterList,
   getRoomFilterList,
-} from "../services/class_service";
-import { getWeeklySchedule } from "../services/schedule_service";
+} from "../../services/class_service";
+import { getWeeklySchedule } from "../../services/schedule_service";
 import { faAngleLeft, faAngleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -212,8 +212,8 @@ const Timetable: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={handlePrevWeek}
-                startIcon={<FontAwesomeIcon icon={faAngleLeft}/>}
-                sx={{textTransform: "none", ml: 3, px: 1}}
+                startIcon={<FontAwesomeIcon icon={faAngleLeft} />}
+                sx={{ textTransform: "none", ml: 3, px: 1 }}
               >
                 Trở về
               </Button>
@@ -227,8 +227,8 @@ const Timetable: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={handleNextWeek}
-                endIcon={<FontAwesomeIcon icon={faAngleRight}/>}
-                sx={{textTransform: "none", px: 1}}
+                endIcon={<FontAwesomeIcon icon={faAngleRight} />}
+                sx={{ textTransform: "none", px: 1 }}
               >
                 Tiếp
               </Button>

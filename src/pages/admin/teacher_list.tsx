@@ -26,8 +26,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate } from "react-router-dom";
-import { GiangVien } from "../model/teacher_model";
-import { getAllTeachers, deleteTeacher } from "../services/teacher_service";
+import { GiangVien } from "../../model/teacher_model";
+import { getAllTeachers, deleteTeacher } from "../../services/teacher_service";
 
 const TeacherListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -177,7 +177,11 @@ const TeacherListPage: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">{teacher.trinhdo}</Typography>
+                    <Typography variant="body2">
+                      {teacher.bangCaps && teacher.bangCaps.length > 0
+                        ? teacher.bangCaps.map((d) => d.loaiBangCap?.ten).join(", ")
+                        : "Chưa cập nhật"}
+                    </Typography>
                   </TableCell>
                   <TableCell align="center">
                     <IconButton
@@ -208,7 +212,7 @@ const TeacherListPage: React.FC = () => {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-    </Container>
+    </Container >
   );
 };
 

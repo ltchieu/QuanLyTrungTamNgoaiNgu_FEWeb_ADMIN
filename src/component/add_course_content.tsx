@@ -22,7 +22,7 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import { DocumentData, NewCourseState } from "../pages/add_course";
+import { DocumentData, NewCourseState } from "../pages/admin/add_course";
 import InputFileUpload from "./button_upload_file";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
@@ -222,9 +222,8 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
           sx={{ mb: 1 }}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography fontWeight="bold">{`Module ${moduleIndex + 1}: ${
-              module.tenmodule
-            }`}</Typography>
+            <Typography fontWeight="bold">{`Module ${moduleIndex + 1}: ${module.tenmodule
+              }`}</Typography>
           </AccordionSummary>
           <AccordionDetails sx={{ pt: 0 }}>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
@@ -241,82 +240,82 @@ const Step3Content: React.FC<Props> = ({ data, setData }) => {
             {/* ==================== TAB NỘI DUNG ==================== */}
             {(activeTabs[moduleIndex] === 0 ||
               activeTabs[moduleIndex] === undefined) && (
-              <Box>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Thêm nội dung bài học
-                </Typography>
-                <Box component="form" onSubmit={(event) => handleAddContent(moduleIndex, event)} sx={{ display: "flex", gap: 1, mb: 2 }}>
-                  <TextField
-                    label="Tên nội dung"
-                    value={newContent}
-                    onChange={(e) => setNewContent(e.target.value)}
-                    fullWidth
-                    size="small"
-                  />
-                  <Button
-                    variant="outlined"
-                    type="submit"
-                    size="small"
-                  >
-                    Thêm
-                  </Button>
-                </Box>
-
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  Danh sách nội dung
-                </Typography>
-                <List dense>
-                  {(module.noidung || []).map((content, contentIndex) => (
-                    <ListItem
-                      key={contentIndex}
-                      alignItems="flex-start"
-                      secondaryAction={
-                        <>
-                          <IconButton
-                            edge="end"
-                            size="small"
-                            sx={{ mr: 0.5 }}
-                            onClick={() =>
-                              handleOpenEditContentDialog(
-                                moduleIndex,
-                                contentIndex,
-                                content
-                              )
-                            }
-                          >
-                            <FontAwesomeIcon icon={faPen} />
-                          </IconButton>
-
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleRemoveContent(moduleIndex, contentIndex)
-                            }
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </>
-                      }
+                <Box>
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Thêm nội dung bài học
+                  </Typography>
+                  <Box component="form" onSubmit={(event) => handleAddContent(moduleIndex, event)} sx={{ display: "flex", gap: 1, mb: 2 }}>
+                    <TextField
+                      label="Tên nội dung"
+                      value={newContent}
+                      onChange={(e) => setNewContent(e.target.value)}
+                      fullWidth
+                      size="small"
+                    />
+                    <Button
+                      variant="outlined"
+                      type="submit"
+                      size="small"
                     >
-                      <ListItemText
-                        primary={content.tennoidung}
-                        sx={{
-                          whiteSpace: "normal",
-                          width: '100%',
-                          overflowWrap: 'break-word',
-                          mr: 7
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                  {(!module.noidung || module.noidung.length === 0) && (
-                    <Typography variant="body2" color="textSecondary">
-                      Chưa có nội dung nào.
-                    </Typography>
-                  )}
-                </List>
-              </Box>
-            )}
+                      Thêm
+                    </Button>
+                  </Box>
+
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                    Danh sách nội dung
+                  </Typography>
+                  <List dense>
+                    {(module.noidung || []).map((content, contentIndex) => (
+                      <ListItem
+                        key={contentIndex}
+                        alignItems="flex-start"
+                        secondaryAction={
+                          <>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              sx={{ mr: 0.5 }}
+                              onClick={() =>
+                                handleOpenEditContentDialog(
+                                  moduleIndex,
+                                  contentIndex,
+                                  content
+                                )
+                              }
+                            >
+                              <FontAwesomeIcon icon={faPen} />
+                            </IconButton>
+
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleRemoveContent(moduleIndex, contentIndex)
+                              }
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        }
+                      >
+                        <ListItemText
+                          primary={content.tennoidung}
+                          sx={{
+                            whiteSpace: "normal",
+                            width: '100%',
+                            overflowWrap: 'break-word',
+                            mr: 7
+                          }}
+                        />
+                      </ListItem>
+                    ))}
+                    {(!module.noidung || module.noidung.length === 0) && (
+                      <Typography variant="body2" color="textSecondary">
+                        Chưa có nội dung nào.
+                      </Typography>
+                    )}
+                  </List>
+                </Box>
+              )}
 
             {/* ==================== TAB TÀI LIỆU ==================== */}
             {activeTabs[moduleIndex] === 1 && (

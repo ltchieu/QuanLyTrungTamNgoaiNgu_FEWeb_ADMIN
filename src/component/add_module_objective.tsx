@@ -21,7 +21,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { NewCourseState } from "../pages/add_course";
+import { NewCourseState } from "../pages/admin/add_course";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faPen } from "@fortawesome/free-solid-svg-icons";
 import { SkillResponse } from "../model/course_model";
@@ -217,10 +217,10 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
       modules: prev.modules.map((module, index) =>
         index === editingModule.index
           ? {
-              ...module,
-              tenmodule: editingModule.tenmodule,
-              duration: editingModule.duration,
-            }
+            ...module,
+            tenmodule: editingModule.tenmodule,
+            duration: editingModule.duration,
+          }
           : module
       ),
     }));
@@ -432,8 +432,8 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
                             used === expected
                               ? "success"
                               : used > expected
-                              ? "error"
-                              : "primary"
+                                ? "error"
+                                : "primary"
                           }
                         />
                         <Typography variant="caption" color="text.secondary">

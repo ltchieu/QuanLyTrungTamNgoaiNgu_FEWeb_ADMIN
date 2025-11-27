@@ -27,14 +27,14 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-import { LoaiKhuyenMai } from "../model/promotion_model";
+import { LoaiKhuyenMai } from "../../model/promotion_model";
 import {
   getPromotionById,
   updatePromotion,
   getAllPromotionTypes,
-} from "../services/promotion_service";
-import { getCourseFilterList } from "../services/class_service";
-import { CourseFilterData } from "../model/class_model";
+} from "../../services/promotion_service";
+import { getCourseFilterList } from "../../services/class_service";
+import { CourseFilterData } from "../../model/class_model";
 
 const PromotionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -125,7 +125,7 @@ const PromotionDetailPage: React.FC = () => {
 
         if (promotionData) {
           const courseIds = promotionData.chiTietKhuyenMai?.map(ct => ct.maKhoaHoc) || [];
-          
+
           formik.setValues({
             tenKhuyenMai: promotionData.tenKhuyenMai,
             maLoaiKhuyenMai: promotionData.maLoaiKhuyenMai,
@@ -182,7 +182,7 @@ const PromotionDetailPage: React.FC = () => {
         <form onSubmit={formik.handleSubmit}>
           <Grid container spacing={3}>
             {/* Left Column: General Info */}
-            <Grid size={{xs: 12, md: 8}}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Card sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom fontWeight="bold">
                   Thông tin chung
@@ -374,7 +374,7 @@ const PromotionDetailPage: React.FC = () => {
             </Grid>
 
             {/* Right Column: Actions */}
-            <Grid size={{xs: 12, md: 4}}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom fontWeight="bold">
                   Hành động

@@ -26,8 +26,8 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { StudentModel } from "../model/student_model";
-import { getAllStudents } from "../services/student_service";
+import { StudentModel } from "../../model/student_model";
+import { getAllStudents } from "../../services/student_service";
 import { useNavigate } from "react-router-dom";
 
 const Student: React.FC = () => {
@@ -113,7 +113,7 @@ const Student: React.FC = () => {
 
   if (loading) {
     return <div>Loading...</div>;
-  } 
+  }
 
   return (
     <Box
@@ -155,7 +155,7 @@ const Student: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ 
+              sx={{
                 maxWidth: 500,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "12px",
@@ -213,8 +213,8 @@ const Student: React.FC = () => {
                         </Stack>
                       </TableCell>
                       <TableCell>
-                        <Chip 
-                          label={student.gioitinh ? "Nam" : "Nữ"} 
+                        <Chip
+                          label={student.gioitinh ? "Nam" : "Nữ"}
                           size="small"
                           color={student.gioitinh ? "primary" : "secondary"}
                           variant="outlined"
@@ -235,7 +235,7 @@ const Student: React.FC = () => {
                         <IconButton
                           color="primary"
                           onClick={() => navigate(`/student/${student.mahocvien}`)}
-                          sx={{ 
+                          sx={{
                             backgroundColor: "rgba(99, 91, 255, 0.08)",
                             "&:hover": { backgroundColor: "rgba(99, 91, 255, 0.16)" }
                           }}

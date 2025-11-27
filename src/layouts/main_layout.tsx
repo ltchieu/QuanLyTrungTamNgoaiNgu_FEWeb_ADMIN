@@ -3,6 +3,7 @@ import React from "react";
 import { Sidebar } from "../component/sidebar";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hook/useAuth";
+import UserMenu from "../component/user_menu";
 
 type Props = {};
 
@@ -68,9 +69,7 @@ const MainLayout = (props: Props) => {
       >
         <Box display="flex" justifyContent="flex-end" sx={{ mb: 7, mr: 7 }}>
           {accessToken ? (
-            <Button onClick={handleLogout} sx={buttonSx}>
-              Log out
-            </Button>
+            <UserMenu />
           ) : (
             <Button onClick={() => navigate("/login")} sx={buttonSx}>
               Log in

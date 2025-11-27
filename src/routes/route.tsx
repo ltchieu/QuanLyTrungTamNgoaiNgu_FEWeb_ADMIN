@@ -1,59 +1,97 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import DashboardPage from "../pages/dashboard";
+import RoleBasedRoute from "./role_based_route";
+import DashboardPage from "../pages/admin/dashboard";
 import MainLayout from "../layouts/main_layout";
-import Course from "../pages/course";
-import CreateCoursePage from "../pages/add_course";
-import EditCourse from "../pages/edit_course";
-import ClassListPage from "../pages/class";
+import Course from "../pages/admin/course";
+import CreateCoursePage from "../pages/admin/add_course";
+import EditCourse from "../pages/admin/edit_course";
+import ClassListPage from "../pages/admin/class";
 import Login from "../auth/login";
 import { useAuth } from "../hook/useAuth";
 import ProtectedRoute from "./protected_route";
-import Timetable from "../pages/schedule";
-import EditClass from "../pages/edit_class";
-import Student from "../pages/student";
-import StudentDetail from "../pages/student_detail";
-import PromotionListPage from "../pages/promotion_list";
-import AddPromotionPage from "../pages/add_promotion";
-import PromotionDetailPage from "../pages/promotion_detail";
-import TeacherListPage from "../pages/teacher_list";
-import AddTeacherPage from "../pages/add_teacher";
-import TeacherDetailPage from "../pages/teacher_detail";
+import Timetable from "../pages/admin/schedule";
+import EditClass from "../pages/admin/edit_class";
+import Student from "../pages/admin/student";
+import StudentDetail from "../pages/admin/student_detail";
+import PromotionListPage from "../pages/admin/promotion_list";
+import AddPromotionPage from "../pages/admin/add_promotion";
+import PromotionDetailPage from "../pages/admin/promotion_detail";
+import TeacherListPage from "../pages/admin/teacher_list";
+import AddTeacherPage from "../pages/admin/add_teacher";
+import TeacherDetailPage from "../pages/admin/teacher_detail";
+import TeacherDashboard from "../pages/teacher/dashboard";
+import TeacherSchedule from "../pages/teacher/schedule";
+import TeacherClassList from "../pages/teacher/class_list";
+import TeacherClassDetail from "../pages/teacher/class_detail";
+import TeacherAttendance from "../pages/teacher/attendance";
+import TeacherAttendanceList from "../pages/teacher/attendance_list";
+import TeacherProfile from "../pages/teacher/profile";
+import Unauthorized from "../pages/unauthorized";
 
 function AppRoutes() {
-  const { accessToken, isLoading } = useAuth();
+  const { accessToken, role, isLoading } = useAuth();
 
   if (isLoading) return <div>Loading session...</div>;
 
   return (
     <div>
       <Routes>
+        {/* Admin Routes - Only for ADMIN role */}
         {accessToken ? (
-          <Route element={<ProtectedRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<DashboardPage />}></Route>
-              <Route path="/courses" element={<Course />}></Route>
-              <Route path="/addCourse" element={<CreateCoursePage />}></Route>
-              <Route path="/editCourse/:id" element={<EditCourse />}></Route>
-              <Route path="/class" element={<ClassListPage />}></Route>
-              <Route path="/schedule" element={<Timetable />}></Route>
-              <Route path="/class/edit/:id" element={<EditClass />}></Route>
-              <Route path="/students" element={<Student />}></Route>
-              <Route path="/student/:id" element={<StudentDetail />}></Route>
-              <Route path="/promotions" element={<PromotionListPage />}></Route>
-              <Route path="/promotions/add" element={<AddPromotionPage />}></Route>
-              <Route path="/promotions/:id" element={<PromotionDetailPage />}></Route>
-              <Route path="/teachers" element={<TeacherListPage />}></Route>
-              <Route path="/teachers/add" element={<AddTeacherPage />}></Route>
-              <Route path="/teachers/:id" element={<TeacherDetailPage />}></Route>
+          <Route element={<RoleBasedRoute allowedRoles={['ADMIN']} />}>
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<DashboardPage />}></Route>
+                <Route path="/courses" element={<Course />}></Route>
+                <Route path="/addCourse" element={<CreateCoursePage />}></Route>
+                <Route path="/editCourse/:id" element={<EditCourse />}></Route>
+                <Route path="/class" element={<ClassListPage />}></Route>
+                <Route path="/schedule" element={<Timetable />}></Route>
+                <Route path="/class/edit/:id" element={<EditClass />}></Route>
+                <Route path="/students" element={<Student />}></Route>
+                <Route path="/student/:id" element={<StudentDetail />}></Route>
+                <Route path="/promotions" element={<PromotionListPage />}></Route>
+                <Route path="/promotions/add" element={<AddPromotionPage />}></Route>
+                <Route path="/promotions/:id" element={<PromotionDetailPage />}></Route>
+                <Route path="/teachers" element={<TeacherListPage />}></Route>
+                <Route path="/teachers/add" element={<AddTeacherPage />}></Route>
+                <Route path="/teachers/:id" element={<TeacherDetailPage />}></Route>
+              </Route>
             </Route>
           </Route>
-        ) : (
-          <Route path="/login" element={<Login />}></Route>
-        )}
+        ) : null}
 
+        {/* Teacher Routes - For TEACHER and ADMIN roles */}
+        {accessToken ? (
+          <Route element={<RoleBasedRoute allowedRoles={['TEACHER', 'ADMIN']} />}>
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+                <Route path="/teacher/schedule" element={<TeacherSchedule />} />
+                <Route path="/teacher/classes" element={<TeacherClassList />} />
+                <Route path="/teacher/classes/:classId" element={<TeacherClassDetail />} />
+                <Route path="/teacher/classes/:classId/attendance" element={<TeacherAttendance />} />
+                <Route path="/teacher/attendance" element={<TeacherAttendanceList />} />
+                <Route path="/teacher/profile" element={<TeacherProfile />} />
+              </Route>
+            </Route>
+          </Route>
+        ) : null}
+
+        {/* Unauthorized page - accessible to all authenticated users */}
+        {accessToken ? (
+          <Route element={<ProtectedRoute />}>
+            <Route path="/unauthorized" element={<Unauthorized />} />
+          </Route>
+        ) : null}
+
+        {/* Login Route */}
+        <Route path="/login" element={<Login />}></Route>
+
+        {/* Catch-all route */}
         <Route
           path="*"
-          element={<Navigate to={accessToken ? "/" : "/login"} replace />}
+          element={<Navigate to={accessToken ? (role === "TEACHER" ? "/teacher/dashboard" : "/") : "/login"} replace />}
         ></Route>
       </Routes>
     </div>

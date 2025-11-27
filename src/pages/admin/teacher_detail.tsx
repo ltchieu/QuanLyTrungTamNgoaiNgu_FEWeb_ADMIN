@@ -15,20 +15,23 @@ import {
   Radio,
   RadioGroup,
   FormLabel,
+  Chip,
 } from "@mui/material";
+import { School } from "@mui/icons-material";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { getTeacherById, updateTeacher } from "../services/teacher_service";
+import { getTeacherById, updateTeacher } from "../../services/teacher_service";
 
 const TeacherDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [teacherDegrees, setTeacherDegrees] = useState<any[]>([]);
 
   const formik = useFormik({
     initialValues: {
@@ -39,7 +42,6 @@ const TeacherDetailPage: React.FC = () => {
       email: "",
       diachi: "",
       anhdaidien: "",
-      trinhdo: "",
       mota: "",
     },
     validationSchema: Yup.object({
@@ -48,7 +50,6 @@ const TeacherDetailPage: React.FC = () => {
       sdt: Yup.string().required("Vui lòng nhập số điện thoại"),
       email: Yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
       diachi: Yup.string().required("Vui lòng nhập địa chỉ"),
-      trinhdo: Yup.string().required("Vui lòng nhập trình độ"),
     }),
     onSubmit: async (values) => {
       if (!id) return;
@@ -62,7 +63,6 @@ const TeacherDetailPage: React.FC = () => {
           email: values.email,
           diachi: values.diachi,
           anhdaidien: values.anhdaidien,
-          trinhdo: values.trinhdo,
           mota: values.mota,
         });
         alert("Cập nhật giảng viên thành công!");
@@ -90,9 +90,9 @@ const TeacherDetailPage: React.FC = () => {
             email: teacher.email,
             diachi: teacher.diachi,
             anhdaidien: teacher.anhdaidien,
-            trinhdo: teacher.trinhdo,
             mota: teacher.mota || "",
           });
+          setTeacherDegrees(teacher.bangCaps || []);
         } else {
           alert("Không tìm thấy giảng viên");
           navigate("/teachers");
@@ -227,15 +227,25 @@ const TeacherDetailPage: React.FC = () => {
                   Thông tin chuyên môn
                 </Typography>
                 <Stack spacing={3}>
-                  <TextField
-                    fullWidth
-                    label="Trình độ"
-                    name="trinhdo"
-                    value={formik.values.trinhdo}
-                    onChange={formik.handleChange}
-                    error={formik.touched.trinhdo && Boolean(formik.errors.trinhdo)}
-                    helperText={formik.touched.trinhdo && formik.errors.trinhdo}
-                  />
+                  <Typography variant="subtitle1" gutterBottom>
+                    Bằng cấp
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+                    {teacherDegrees.length > 0 ? (
+                      teacherDegrees.map((degree, index) => (
+                        <Chip
+                          key={index}
+                          icon={<School />}
+                          label={`${degree.loaiBangCap?.ten || "Bằng cấp"} - ${degree.trinhDo}`}
+                          variant="outlined"
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Chưa có thông tin bằng cấp
+                      </Typography>
+                    )}
+                  </Stack>
 
                   <TextField
                     fullWidth

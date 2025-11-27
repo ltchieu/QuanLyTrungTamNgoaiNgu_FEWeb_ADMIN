@@ -26,10 +26,10 @@ import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-import { LoaiKhuyenMai } from "../model/promotion_model";
-import { createPromotion, getAllPromotionTypes } from "../services/promotion_service";
-import { getCourseFilterList } from "../services/class_service";
-import { CourseFilterData } from "../model/class_model";
+import { LoaiKhuyenMai } from "../../model/promotion_model";
+import { createPromotion, getAllPromotionTypes } from "../../services/promotion_service";
+import { getCourseFilterList } from "../../services/class_service";
+import { CourseFilterData } from "../../model/class_model";
 
 const AddPromotionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -106,9 +106,9 @@ const AddPromotionPage: React.FC = () => {
         };
 
         if (values.maLoaiKhuyenMai === 1) { // Combo
-           payload.chiTietKhuyenMai = values.courseIds.map(id => ({ maKhoaHoc: id }));
+          payload.chiTietKhuyenMai = values.courseIds.map(id => ({ maKhoaHoc: id }));
         } else if (values.maLoaiKhuyenMai === 3) { // Course Discount
-           payload.chiTietKhuyenMai = [{ maKhoaHoc: Number(values.selectedCourseId) }];
+          payload.chiTietKhuyenMai = [{ maKhoaHoc: Number(values.selectedCourseId) }];
         }
 
         await createPromotion(payload);
@@ -144,7 +144,7 @@ const AddPromotionPage: React.FC = () => {
         <form onSubmit={formik.handleSubmit}>
           <Grid container spacing={3}>
             {/* Left Column: General Info */}
-            <Grid size={{xs: 12, md: 8}}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Card sx={{ p: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom fontWeight="bold">
                   Thông tin chung
@@ -335,7 +335,7 @@ const AddPromotionPage: React.FC = () => {
             </Grid>
 
             {/* Right Column: Actions */}
-            <Grid size={{xs: 12, md: 4}}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Card sx={{ p: 3 }}>
                 <Typography variant="h6" gutterBottom fontWeight="bold">
                   Hành động

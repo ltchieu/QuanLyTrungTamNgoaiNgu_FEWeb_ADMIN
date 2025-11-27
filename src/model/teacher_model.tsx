@@ -1,3 +1,16 @@
+export interface LoaiBangCap {
+  maLoai: number;
+  ten: string;
+}
+
+export interface BangCap {
+  ma: number;
+  maGiangVien: number;
+  maLoai: number;
+  trinhDo: string; // Specific level or classification
+  loaiBangCap?: LoaiBangCap; // For display purposes
+}
+
 export interface GiangVien {
   magv: number;
   hoten: string;
@@ -7,7 +20,7 @@ export interface GiangVien {
   email: string;
   diachi: string;
   anhdaidien: string;
-  trinhdo: string;
+  bangCaps: BangCap[]; // List of degrees
   mota?: string;
 }
 

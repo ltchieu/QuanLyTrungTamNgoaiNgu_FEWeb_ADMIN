@@ -32,13 +32,13 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
-import CreateClassDialog from "../component/create_class";
+import CreateClassDialog from "../../component/create_class";
 import {
   ClassView,
   CourseFilterData,
   LecturerFilterData,
   RoomFilterData,
-} from "../model/class_model";
+} from "../../model/class_model";
 import {
   changeClassStatus,
   filterClasses,
@@ -46,7 +46,7 @@ import {
   getLecturerFilterList,
   getRoomFilterList,
   updateClass,
-} from "../services/class_service";
+} from "../../services/class_service";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
@@ -56,17 +56,17 @@ import {
   faMagnifyingGlass,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import SuggestionDialog from "../component/suggestion_dialog";
+import SuggestionDialog from "../../component/suggestion_dialog";
 import {
   getComparator,
   headCells,
   Order,
   stableSort,
   visuallyHidden,
-} from "../util/class_util";
-import useDebounce from "../hook/useDebounce";
-import { ScheduleAlternative } from "../model/schedule_model";
-import ConfirmUpdateDialog from "../component/confirm_update_dialog";
+} from "../../util/class_util";
+import useDebounce from "../../hook/useDebounce";
+import { ScheduleAlternative } from "../../model/schedule_model";
+import ConfirmUpdateDialog from "../../component/confirm_update_dialog";
 
 interface FilterState {
   lecturer: number | null;
@@ -78,13 +78,13 @@ interface FilterState {
 type FilterAction =
   | { type: "SET_SEARCH"; payload: string }
   | {
-      type: "SET_FILTER";
-      payload: {
-        lecturer: number | null;
-        room: number | null;
-        course: number | null;
-      };
-    }
+    type: "SET_FILTER";
+    payload: {
+      lecturer: number | null;
+      room: number | null;
+      course: number | null;
+    };
+  }
   | { type: "RESET" };
 
 const filterReducer = (
@@ -603,7 +603,7 @@ const ClassListPage: React.FC = () => {
                             size="small"
                             color="error"
 
-                            // onClick={() => handleDelete(lop.malop)}
+                          // onClick={() => handleDelete(lop.malop)}
                           >
                             <FontAwesomeIcon icon={faTrash} />
                           </IconButton>
@@ -656,13 +656,13 @@ const ClassListPage: React.FC = () => {
         onSelectAlternative={handleSelectAlternative}
       />
 
-      <ConfirmUpdateDialog 
-          open={confirmUpdateOpen}
-          onClose={() => setConfirmUpdateOpen(false)}
-          onConfirm={handleConfirmUpdate}
-          originalClassId={targetClassId}
-          selectedAlternative={selectedAlt}
-       />
+      <ConfirmUpdateDialog
+        open={confirmUpdateOpen}
+        onClose={() => setConfirmUpdateOpen(false)}
+        onConfirm={handleConfirmUpdate}
+        originalClassId={targetClassId}
+        selectedAlternative={selectedAlt}
+      />
 
       {/* --- SNACKBAR HIỂN THỊ THÀNH CÔNG --- */}
       <Snackbar

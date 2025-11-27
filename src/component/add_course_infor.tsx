@@ -15,7 +15,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { NewCourseState } from "../pages/add_course";
+import { NewCourseState } from "../pages/admin/add_course";
 import { getAllSkills } from "../services/course_service";
 import { CourseCategoryResponse } from "../model/course_category_model";
 import { getAllCategories } from "../services/course_category_service";
@@ -40,8 +40,13 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
     const fetchCategories = async () => {
       try {
         const res = await getAllCategories();
-        if (res.data) {
+        console.log("Category response data:", res.data);
+        if (Array.isArray(res.data)) {
           setCategories(res.data);
+        } else if (res.data && Array.isArray((res.data as any).data)) {
+          setCategories((res.data as any).data);
+        } else {
+          setCategories([]);
         }
       } catch (error) {
         console.error("Lỗi khi tải danh mục:", error);
@@ -54,8 +59,12 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
       try {
         const res = await getAllSkills();
         console.log("Skill response data:", res.data);
-        if (res.data) {
+        if (Array.isArray(res.data)) {
           setSkills(res.data);
+        } else if (res.data && Array.isArray((res.data as any).data)) {
+          setSkills((res.data as any).data);
+        } else {
+          setSkills([]);
         }
       } catch (error) {
         console.error("Lỗi khi tải kỹ năng:", error);
@@ -119,9 +128,9 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
 
     setData((prev) => {
       const exists = prev.skillHours?.some((item) => item.skillId === skillId);
-      
+
       let newSkillHours;
-      
+
       if (exists) {
         newSkillHours = prev.skillHours.map((item) =>
           item.skillId === skillId ? { ...item, hours: hours } : item

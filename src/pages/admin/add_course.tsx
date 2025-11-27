@@ -17,12 +17,12 @@ import {
   Link,
 } from "@mui/material";
 
-import Step1CourseInfo from "../component/add_course_infor";
-import Step2Curriculum from "../component/add_module_objective";
-import Step3Content from "../component/add_course_content";
+import Step1CourseInfo from "../../component/add_course_infor";
+import Step2Curriculum from "../../component/add_module_objective";
+import Step3Content from "../../component/add_course_content";
 import { useNavigate } from "react-router-dom";
-import { createNewCourse, getImageUrl } from "../services/course_service";
-import InputFileUpload from "../component/button_upload_file";
+import { createNewCourse, getImageUrl } from "../../services/course_service";
+import InputFileUpload from "../../component/button_upload_file";
 
 export interface DocumentData {
   tenfile: string;
@@ -68,7 +68,7 @@ const CreateCoursePage: React.FC = () => {
     sogiohoc: 0,
     courseCategoryId: "",
     hocphi: 0,
-    skillHours: [], 
+    skillHours: [],
     video: "",
     description: "",
     entryLevel: "",
@@ -90,7 +90,7 @@ const CreateCoursePage: React.FC = () => {
       courseData.targetLevel.trim() !== "" &&
       courseData.video.trim() !== "" &&
       courseData.image.trim() !== "" &&
-       courseData.courseCategoryId !== "" &&
+      courseData.courseCategoryId !== "" &&
       courseData.skillIds.length > 0
     );
   }, [courseData]);

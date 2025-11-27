@@ -107,7 +107,11 @@ const Login = () => {
       login(loginData);
       console.log("Access token saved in context:", loginData.accessToken);
 
-      navigate("/");
+      if (loginData.role === "TEACHER") {
+        navigate("/teacher/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {

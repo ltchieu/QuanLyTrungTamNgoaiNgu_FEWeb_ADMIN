@@ -25,8 +25,8 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
-import { KhuyenMai, LoaiKhuyenMai } from "../model/promotion_model";
-import { getAllPromotions, deletePromotion, getAllPromotionTypes } from "../services/promotion_service";
+import { KhuyenMai, LoaiKhuyenMai } from "../../model/promotion_model";
+import { getAllPromotions, deletePromotion, getAllPromotionTypes } from "../../services/promotion_service";
 import dayjs from "dayjs";
 
 const PromotionListPage: React.FC = () => {

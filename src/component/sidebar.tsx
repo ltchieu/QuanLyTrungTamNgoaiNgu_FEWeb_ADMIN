@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../hook/useAuth";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import logo from "../img/logo.png";
@@ -25,12 +26,27 @@ const navItems = [
   { text: "Ca học", icon: <FontAwesomeIcon icon={faCalendar} />, path: "/schedule" },
   { text: "Học viên", icon: <FontAwesomeIcon icon={faUsers} />, path: "/students" },
   { text: "Giảng viên", icon: <FontAwesomeIcon icon={faUserTie} />, path: "/teachers" },
-  { text: "Khuyến mãi", icon:<FontAwesomeIcon icon={faTicket} />, path: "/promotions" },
+  { text: "Khuyến mãi", icon: <FontAwesomeIcon icon={faTicket} />, path: "/promotions" },
 ];
 
 export const Sidebar: React.FC = () => {
-  
   const location = useLocation();
+  const { role } = useAuth();
+
+  const getNavItems = () => {
+    if (role === "TEACHER") {
+      return [
+        { text: "Dashboard", icon: <DashboardIcon />, path: "/teacher/dashboard" },
+        { text: "Lịch dạy", icon: <FontAwesomeIcon icon={faCalendar} />, path: "/teacher/schedule" },
+        { text: "Lớp phụ trách", icon: <FontAwesomeIcon icon={faChalkboardUser} />, path: "/teacher/classes" },
+        { text: "Điểm danh", icon: <FontAwesomeIcon icon={faUsers} />, path: "/teacher/attendance" },
+      ];
+    }
+    // Default to ADMIN items
+    return navItems;
+  };
+
+  const displayNavItems = getNavItems();
 
   return (
     <Drawer
@@ -82,7 +98,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Phần các mục điều hướng */}
       <List sx={{ px: 2 }}>
-        {navItems.map((item) => {
+        {displayNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link

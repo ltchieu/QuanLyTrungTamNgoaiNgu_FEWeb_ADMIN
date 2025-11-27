@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'; // Thêm useCallback
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Tabs, Tab, Button, Paper, CircularProgress, Snackbar,
-  Alert,
-  Breadcrumbs,
-  Link, } from '@mui/material';
-import { ModuleData } from '../model/module_model';
-import { getCourseDetail, getModulesByCourseId } from '../services/course_service';
-import EditCurriculum from '../component/edit_curriculum';
-import EditCourseInfo from '../component/edit_course_infor';
-import EditContentDetails from '../component/edit_content_details';
-import { CourseDetails } from '../model/course_model';
+import {
+    Box, Container, Typography, Tabs, Tab, Button, Paper, CircularProgress, Snackbar,
+    Alert,
+    Breadcrumbs,
+    Link,
+} from '@mui/material';
+import { ModuleData } from '../../model/module_model';
+import { getCourseDetail, getModulesByCourseId } from '../../services/course_service';
+import EditCurriculum from '../../component/edit_curriculum';
+import EditCourseInfo from '../../component/edit_course_infor';
+import EditContentDetails from '../../component/edit_content_details';
+import { CourseDetails } from '../../model/course_model';
 
 const EditCourse: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -59,7 +61,7 @@ const EditCourse: React.FC = () => {
             // API getModules trả về trực tiếp mảng modules
             setModules(modulesRes.data || []);
 
-        } catch (err: any) { 
+        } catch (err: any) {
             console.error("Lỗi khi tải dữ liệu:", err);
             const errorMsg = err.response?.data?.message || "Không thể tải dữ liệu khóa học hoặc modules.";
             setError(errorMsg);
@@ -73,7 +75,7 @@ const EditCourse: React.FC = () => {
     // Gọi fetchData khi component mount hoặc courseId thay đổi
     useEffect(() => {
         fetchData();
-    }, [fetchData]); 
+    }, [fetchData]);
 
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
@@ -96,7 +98,7 @@ const EditCourse: React.FC = () => {
 
     // Kiểm tra xem dữ liệu cơ bản đã load chưa
     if (!courseBaseData.tenkhoahoc) {
-         return <Container><Typography sx={{ mt: 4 }}>Không tìm thấy dữ liệu khóa học.</Typography></Container>;
+        return <Container><Typography sx={{ mt: 4 }}>Không tìm thấy dữ liệu khóa học.</Typography></Container>;
     }
 
     return (
@@ -140,17 +142,17 @@ const EditCourse: React.FC = () => {
                     {activeTab === 1 &&
                         <EditCurriculum
                             courseId={Number(id)}
-                            initialModules={modules} 
+                            initialModules={modules}
                             objectives={courseBaseData.muctieu || []}
                             onModulesChange={handleDataNeedsRefresh}
-                            // setDataObjectives={(newObjectives) => setCourseBaseData(prev => ({...prev, muctieu: newObjectives}))}
+                        // setDataObjectives={(newObjectives) => setCourseBaseData(prev => ({...prev, muctieu: newObjectives}))}
                         />
                     }
                 </div>
                 <div role="tabpanel" hidden={activeTab !== 2} id="edit-panel-2">
                     {activeTab === 2 &&
                         <EditContentDetails
-                            modules={modules} 
+                            modules={modules}
                             onModulesChange={handleDataNeedsRefresh}
                         />
                     }

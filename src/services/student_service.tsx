@@ -1,4 +1,36 @@
+import { axiosClient } from "../api/axios_client";
 import { StudentModel } from "../model/student_model";
+import { ApiResponse } from "../model/api_respone";
+
+export const getStudentInfo = async (): Promise<StudentModel> => {
+  try {
+    const response = await axiosClient.get<ApiResponse<StudentModel>>("/students");
+    if (response.data && response.data.code === 1000 && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data?.message || "Failed to fetch student info");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message;
+    console.error("Get Student Info API error:", message);
+    throw new Error(message);
+  }
+};
+
+export const updateStudentInfo = async (data: Partial<StudentModel>): Promise<void> => {
+  try {
+    const response = await axiosClient.put<ApiResponse<void>>("/students", data);
+    if (response.data && response.data.code === 1000) {
+      return;
+    } else {
+      throw new Error(response.data?.message || "Failed to update student info");
+    }
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message;
+    console.error("Update Student Info API error:", message);
+    throw new Error(message);
+  }
+};
 
 const MOCK_STUDENTS: StudentModel[] = Array.from({ length: 50 }).map((_, index) => ({
   mahocvien: index + 1,

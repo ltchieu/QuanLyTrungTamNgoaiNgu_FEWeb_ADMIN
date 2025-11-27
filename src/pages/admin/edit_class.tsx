@@ -51,15 +51,15 @@ import {
   updateClass,
   getLecturerFilterList,
   getRoomFilterList,
-} from "../services/class_service";
-import { checkAndSuggestSchedule } from "../services/schedule_service";
+} from "../../services/class_service";
+import { checkAndSuggestSchedule } from "../../services/schedule_service";
 import {
   ScheduleCheckRequest,
   ScheduleSuggestionResponse,
   ResourceOption,
   ScheduleAlternative,
-} from "../model/schedule_model";
-import { ClassDetailResponse } from "../model/class_model";
+} from "../../model/schedule_model";
+import { ClassDetailResponse } from "../../model/class_model";
 
 // --- CÁC HÀM HELPER ---
 const DAY_OPTIONS = [
@@ -187,7 +187,7 @@ const EditClass: React.FC = () => {
         console.error("Update error:", error);
         alert(
           "Lỗi khi cập nhật: " +
-            (error.response?.data?.message || error.message)
+          (error.response?.data?.message || error.message)
         );
       } finally {
         setIsSaving(false);
@@ -615,8 +615,8 @@ const EditClass: React.FC = () => {
                     {isChecking
                       ? "Đang kiểm tra..."
                       : isFormChanged
-                      ? "Kiểm tra lịch & Tìm phòng trống"
-                      : "Thông tin chưa thay đổi"}
+                        ? "Kiểm tra lịch & Tìm phòng trống"
+                        : "Thông tin chưa thay đổi"}
                   </Button>
                 </Grid>
 

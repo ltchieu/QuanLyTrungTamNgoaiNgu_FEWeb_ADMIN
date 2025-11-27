@@ -1,4 +1,4 @@
-import { DocumentData } from "../pages/add_course";
+import { DocumentData } from "../pages/admin/add_course";
 
 export interface Objective {
   id: number;

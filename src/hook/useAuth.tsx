@@ -13,6 +13,8 @@ import { logoutService, refreshToken } from "../services/auth_service";
 
 interface AuthContextType {
   accessToken: string | null;
+  role: string | null;
+  userId: number | null;
   isLoading: boolean;
   login: (data: LoginResponse) => void;
   logout: () => void;
@@ -28,6 +30,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (data: LoginResponse) => {
     setAccessToken(data.accessToken);
+    setRole(data.role);
+    setUserId(data.userId);
+    localStorage.setItem("role", data.role);
+    localStorage.setItem("userId", data.userId.toString());
   };
 
   const logout = useCallback(async () => {
@@ -39,12 +45,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAccessToken(null);
     setUserId(null);
     setRole(null);
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
   }, []);
 
   const refreshAccessToken = useCallback(async (): Promise<string> => {
     try {
       const tokenResponse = await refreshToken();
       setAccessToken(tokenResponse.accessToken);
+      // Restore role and userId from localStorage if available
+      const storedRole = localStorage.getItem("role");
+      const storedUserId = localStorage.getItem("userId");
+      if (storedRole) setRole(storedRole);
+      if (storedUserId) setUserId(Number(storedUserId));
+
       return tokenResponse.accessToken;
     } catch (error) {
       console.error("Lỗi khi refresh token:", error);
@@ -57,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setupAxiosInterceptors(
       () => accessToken,
       logout,
-      refreshAccessToken 
+      refreshAccessToken
     );
 
     // Khi tải trang, chỉ thử refresh token
@@ -80,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, isLoading, login, logout }}
+      value={{ accessToken, role, userId, isLoading, login, logout }}
     >
       {children}
     </AuthContext.Provider>

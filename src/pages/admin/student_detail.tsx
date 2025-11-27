@@ -19,8 +19,8 @@ import {
   Grid,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import { StudentModel } from "../model/student_model";
-import { getStudentById, updateStudent } from "../services/student_service";
+import { StudentModel } from "../../model/student_model";
+import { getStudentById, updateStudent } from "../../services/student_service";
 import SaveIcon from "@mui/icons-material/Save";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import dayjs from "dayjs";
@@ -118,7 +118,7 @@ const StudentDetail: React.FC = () => {
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleSave}
-            sx={{ 
+            sx={{
               backgroundColor: "#635bff",
               borderRadius: "12px",
               textTransform: "none",
@@ -143,16 +143,16 @@ const StudentDetail: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Học viên
               </Typography>
-              
+
               <Stack spacing={2} sx={{ textAlign: "left" }}>
-                 <Box>
-                    <Typography variant="caption" color="text.secondary">Mã học viên</Typography>
-                    <Typography variant="body1" fontWeight={500}>{student.mahocvien}</Typography>
-                 </Box>
-                 <Box>
-                    <Typography variant="caption" color="text.secondary">Ngày tham gia</Typography>
-                    <Typography variant="body1" fontWeight={500}>01/01/2023</Typography>
-                 </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Mã học viên</Typography>
+                  <Typography variant="body1" fontWeight={500}>{student.mahocvien}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">Ngày tham gia</Typography>
+                  <Typography variant="body1" fontWeight={500}>01/01/2023</Typography>
+                </Box>
               </Stack>
             </Card>
           </Grid>
