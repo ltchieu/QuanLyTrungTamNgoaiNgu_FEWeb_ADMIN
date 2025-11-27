@@ -94,6 +94,8 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
     field: "tenmodule" | "duration",
     value: string
   ) => {
+    if (field === "duration" && Number(value) < 0) return;
+
     setModuleInputs((prev) => ({
       ...prev,
       [skillId]: {
@@ -565,7 +567,10 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
                           }
                           sx={{ width: "100px" }}
                           InputProps={{ inputProps: { min: 0.1, step: 0.1 } }}
-                          onKeyDown={handleEnterKey}
+                          onKeyDown={(e) => {
+                            if (e.key === "-") e.preventDefault();
+                            handleEnterKey(e);
+                          }}
                           disabled={isFull || expected === 0}
                         />
                         <Button
@@ -612,13 +617,16 @@ const Step2Curriculum: React.FC<Props> = ({ data, setData }) => {
               type="number"
               fullWidth
               value={editingModule?.duration || ""}
-              onChange={(e) =>
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (val < 0) return;
                 setEditingModule((prev) =>
                   prev
-                    ? { ...prev, duration: parseFloat(e.target.value) }
+                    ? { ...prev, duration: isNaN(val) ? 0 : val }
                     : null
-                )
-              }
+                );
+              }}
+              onKeyDown={(e) => e.key === "-" && e.preventDefault()}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">giờ</InputAdornment>

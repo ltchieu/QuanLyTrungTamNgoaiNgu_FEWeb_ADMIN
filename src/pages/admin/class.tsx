@@ -357,11 +357,6 @@ const ClassListPage: React.FC = () => {
     return "default";
   };
 
-  const displayStatus = (status: string) => {
-    if (status == "1") return "Đang diễn ra";
-    else return "Đã đóng";
-  };
-
   // handle Sắp xếp
   const handleRequestSort = (property: keyof ClassView) => {
     const isAsc = orderBy === property && order === "asc";
@@ -580,7 +575,7 @@ const ClassListPage: React.FC = () => {
                       <TableCell>{lop.instructorName}</TableCell>
                       <TableCell>
                         <Chip
-                          label={displayStatus(lop.status)}
+                          label={lop.status}
                           color={getStatusChipColor(Number(lop.status))}
                           size="small"
                         />

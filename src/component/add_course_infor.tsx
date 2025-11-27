@@ -116,6 +116,10 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
         }));
       }
     } else {
+      // Prevent negative numbers for specific fields
+      if ((name === "sogiohoc" || name === "hocphi") && Number(value) < 0) {
+        return;
+      }
       setData((prev) => ({
         ...prev,
         [name]: value,
@@ -124,6 +128,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
   };
 
   const handleSkillHourChange = (skillId: number, value: string) => {
+    if (Number(value) < 0) return;
     const hours = value === "" ? 0 : Number(value);
 
     setData((prev) => {
@@ -214,6 +219,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           fullWidth
           value={data.sogiohoc || ""}
           onChange={handleChange}
+          onKeyDown={(e) => e.key === "-" && e.preventDefault()}
           {...getErrorProps("sogiohoc")}
           helperText={
             getErrorProps("sogiohoc").error
@@ -267,6 +273,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
           fullWidth
           value={data.hocphi || ""}
           onChange={handleChange}
+          onKeyDown={(e) => e.key === "-" && e.preventDefault()}
           {...getErrorProps("hocphi")}
         />
       </Grid>
@@ -341,6 +348,7 @@ const Step1CourseInfo: React.FC<Props> = ({ data, setData }) => {
                       onChange={(e) => {
                         handleSkillHourChange(skillId, e.target.value)
                       }}
+                      onKeyDown={(e) => e.key === "-" && e.preventDefault()}
                       error={hours <= 0}
                       helperText={hours <= 0 ? "Số giờ phải > 0" : ""}
                     />
