@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hook/useAuth";
-import { getTeacherClassesMock, getCourseFilterList } from "../../services/class_service";
+import { getClassesEnrolled, getCourseFilterList } from "../../services/class_service";
 import { CourseFilterData } from "../../model/class_model";
 
 const TeacherAttendanceList: React.FC = () => {
@@ -52,12 +52,26 @@ const TeacherAttendanceList: React.FC = () => {
                 const courseData = await getCourseFilterList();
                 setCourses(courseData);
 
-                // Fetch teacher's classes (mock)
-                if (userId) {
-                    const classData = await getTeacherClassesMock(userId);
-                    setClasses(classData);
-                    setFilteredClasses(classData);
-                }
+                // Fetch teacher's classes (API)
+                const classResponse = await getClassesEnrolled(1, 1000);
+
+                const mappedClasses = classResponse.classes.map((cls) => ({
+                    classId: cls.classId,
+                    className: cls.className,
+                    courseName: cls.courseName,
+                    roomName: cls.roomName,
+                    schedulePattern: cls.schedulePattern,
+                    startDate: cls.startDate,
+                    endDate: cls.endDate,
+                    totalStudents: cls.currentEnrollment,
+                    status: cls.status,
+                    progress: 0,
+                    totalSessions: 0,
+                    completedSessions: 0
+                }));
+
+                setClasses(mappedClasses);
+                setFilteredClasses(mappedClasses);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {

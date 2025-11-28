@@ -35,13 +35,13 @@ import {
     Phone,
     Edit,
 } from "@mui/icons-material";
-import { getTeacherClassDetailMock, getClassStudentsMock } from "../../services/class_service";
+import { getClassDetail } from "../../services/class_service";
+import { ClassDetailResponse, StudentInClass } from "../../model/class_model";
 
 const TeacherClassDetail: React.FC = () => {
     const { classId } = useParams<{ classId: string }>();
     const navigate = useNavigate();
-    const [classDetail, setClassDetail] = useState<any>(null);
-    const [students, setStudents] = useState<any[]>([]);
+    const [classDetail, setClassDetail] = useState<ClassDetailResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
@@ -49,10 +49,8 @@ const TeacherClassDetail: React.FC = () => {
             if (classId) {
                 try {
                     setLoading(true);
-                    const detail = await getTeacherClassDetailMock(classId);
-                    const studentList = await getClassStudentsMock(classId);
+                    const detail = await getClassDetail(classId);
                     setClassDetail(detail);
-                    setStudents(studentList);
                 } catch (error) {
                     console.error("Error fetching class detail:", error);
                 } finally {
@@ -113,6 +111,11 @@ const TeacherClassDetail: React.FC = () => {
         );
     }
 
+    // Calculate progress
+    const totalSessions = classDetail.totalSessions || 0;
+    const completedSessions = classDetail.sessions ? classDetail.sessions.filter(s => s.status === 'Completed').length : 0;
+    const progress = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+
     return (
         <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             {/* Breadcrumbs */}
@@ -142,11 +145,6 @@ const TeacherClassDetail: React.FC = () => {
                             label={classDetail.courseName}
                             color="primary"
                             variant="outlined"
-                            size="small"
-                        />
-                        <Chip
-                            label={getStatusLabel(classDetail.status)}
-                            color={getStatusColor(classDetail.status) as any}
                             size="small"
                         />
                     </Stack>
@@ -215,20 +213,13 @@ const TeacherClassDetail: React.FC = () => {
                                                     Sĩ số
                                                 </Typography>
                                                 <Typography variant="body1">
-                                                    {classDetail.totalStudents} học viên
+                                                    {classDetail.currentEnrollment}/{classDetail.maxCapacity} học viên
                                                 </Typography>
                                             </Box>
                                         </Box>
                                     </Stack>
                                 </Grid>
                             </Grid>
-
-                            <Box sx={{ mt: 3 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                    Mô tả
-                                </Typography>
-                                <Typography variant="body1">{classDetail.description}</Typography>
-                            </Box>
                         </CardContent>
                     </Card>
 
@@ -239,7 +230,7 @@ const TeacherClassDetail: React.FC = () => {
                                 <Typography variant="h6" fontWeight="bold">
                                     Danh sách học viên
                                 </Typography>
-                                <Chip label={`${students.length} học viên`} size="small" />
+                                <Chip label={`${classDetail.students ? classDetail.students.length : 0} học viên`} size="small" />
                             </Box>
                             <TableContainer component={Paper} variant="outlined" sx={{ boxShadow: "none" }}>
                                 <Table>
@@ -247,24 +238,21 @@ const TeacherClassDetail: React.FC = () => {
                                         <TableRow>
                                             <TableCell>Học viên</TableCell>
                                             <TableCell>Liên hệ</TableCell>
-                                            <TableCell align="center">Điểm danh</TableCell>
-                                            <TableCell align="center">Điểm GK</TableCell>
-                                            <TableCell align="center">Trạng thái</TableCell>
                                             <TableCell align="right">Thao tác</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {students.map((student) => (
+                                        {classDetail.students && classDetail.students.map((student) => (
                                             <TableRow key={student.studentId} hover>
                                                 <TableCell>
                                                     <Box sx={{ display: "flex", alignItems: "center" }}>
-                                                        <Avatar sx={{ width: 32, height: 32, mr: 1.5, bgcolor: "primary.main" }}>
+                                                        <Avatar sx={{ width: 32, height: 32, mr: 1.5, bgcolor: "primary.main" }} src={student.avatar}>
                                                             {student.fullName.charAt(0)}
                                                         </Avatar>
                                                         <Box>
                                                             <Typography variant="subtitle2">{student.fullName}</Typography>
                                                             <Typography variant="caption" color="text.secondary">
-                                                                {student.gender === "Nam" ? "Nam" : "Nữ"} • {student.dob}
+                                                                {student.gender ? "Nam" : "Nữ"}
                                                             </Typography>
                                                         </Box>
                                                     </Box>
@@ -280,30 +268,6 @@ const TeacherClassDetail: React.FC = () => {
                                                             <Typography variant="caption">{student.email}</Typography>
                                                         </Box>
                                                     </Stack>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                                        <LinearProgress
-                                                            variant="determinate"
-                                                            value={student.attendance}
-                                                            sx={{ width: 60, height: 6, borderRadius: 3, mr: 1 }}
-                                                            color={student.attendance < 80 ? "error" : "success"}
-                                                        />
-                                                        <Typography variant="caption">{student.attendance}%</Typography>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Typography fontWeight="bold">
-                                                        {student.midtermScore !== null ? student.midtermScore : "-"}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="center">
-                                                    <Chip
-                                                        label={getStatusLabel(student.status)}
-                                                        size="small"
-                                                        color={getStatusColor(student.status) as any}
-                                                        variant="outlined"
-                                                    />
                                                 </TableCell>
                                                 <TableCell align="right">
                                                     <IconButton size="small" color="primary">
@@ -330,7 +294,7 @@ const TeacherClassDetail: React.FC = () => {
                                 <Box sx={{ position: "relative", display: "inline-flex" }}>
                                     <LinearProgress
                                         variant="determinate"
-                                        value={classDetail.progress}
+                                        value={progress}
                                         sx={{ width: "100%", height: 10, borderRadius: 5 }}
                                     />
                                 </Box>
@@ -338,16 +302,16 @@ const TeacherClassDetail: React.FC = () => {
                             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                                 <Typography variant="body2" color="text.secondary">Đã hoàn thành</Typography>
                                 <Typography variant="body2" fontWeight="bold">
-                                    {classDetail.completedSessions}/{classDetail.totalSessions} buổi
+                                    {completedSessions}/{totalSessions} buổi
                                 </Typography>
                             </Box>
                             <LinearProgress
                                 variant="determinate"
-                                value={classDetail.progress}
+                                value={progress}
                                 sx={{ height: 8, borderRadius: 4 }}
                             />
                             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block", textAlign: "center" }}>
-                                {classDetail.progress}% chương trình
+                                {progress}% chương trình
                             </Typography>
                         </CardContent>
                     </Card>
@@ -363,7 +327,7 @@ const TeacherClassDetail: React.FC = () => {
                                 </Avatar>
                                 <Box>
                                     <Typography variant="subtitle1" fontWeight="bold">
-                                        {classDetail.lecturerName}
+                                        {classDetail.instructorName}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         Giảng viên chính

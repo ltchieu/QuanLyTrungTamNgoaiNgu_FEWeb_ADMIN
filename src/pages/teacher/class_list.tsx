@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hook/useAuth";
-import { getTeacherClassesMock, getCourseFilterList } from "../../services/class_service";
+import { getClassesEnrolled, getCourseFilterList } from "../../services/class_service";
 import { CourseFilterData } from "../../model/class_model";
 
 const TeacherClassList: React.FC = () => {
@@ -51,13 +51,26 @@ const TeacherClassList: React.FC = () => {
                 // Fetch courses for filter
                 const courseData = await getCourseFilterList();
                 setCourses(courseData);
+                const classResponse = await getClassesEnrolled(1, 1000);
 
-                // Fetch teacher's classes (mock)
-                if (userId) {
-                    const classData = await getTeacherClassesMock(userId);
-                    setClasses(classData);
-                    setFilteredClasses(classData);
-                }
+                // Map API response to UI model
+                const mappedClasses = classResponse.classes.map((cls) => ({
+                    classId: cls.classId,
+                    className: cls.className,
+                    courseName: cls.courseName,
+                    roomName: cls.roomName,
+                    schedulePattern: cls.schedulePattern,
+                    startDate: cls.startDate,
+                    endDate: cls.endDate,
+                    totalStudents: cls.currentEnrollment, // Mapping currentEnrollment to totalStudents
+                    status: cls.status,
+                    progress: 0, // Not available in API yet
+                    totalSessions: 0, // Not available in API yet
+                    completedSessions: 0 // Not available in API yet
+                }));
+
+                setClasses(mappedClasses);
+                setFilteredClasses(mappedClasses);
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {

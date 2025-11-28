@@ -9,7 +9,6 @@ import {
     Grid,
     Button,
     Stack,
-    Divider,
     Table,
     TableBody,
     TableCell,
@@ -18,14 +17,12 @@ import {
     TableRow,
     Paper,
     Avatar,
-    IconButton,
     Breadcrumbs,
     Link,
     Select,
     MenuItem,
     FormControl,
     InputLabel,
-    Checkbox,
     TextField,
     Snackbar,
     Alert,
@@ -38,17 +35,17 @@ import {
     Person,
 } from "@mui/icons-material";
 import {
-    getTeacherClassDetailMock,
-    getSessionsByClassIdMock,
-    getAttendanceBySessionIdMock,
+    getClassDetail,
+    getAttendanceBySessionId,
     saveAttendanceMock,
 } from "../../services/class_service";
+import { ClassDetailResponse, SessionInfoDetail } from "../../model/class_model";
 
 const TeacherAttendance: React.FC = () => {
     const { classId } = useParams<{ classId: string }>();
     const navigate = useNavigate();
-    const [classDetail, setClassDetail] = useState<any>(null);
-    const [sessions, setSessions] = useState<any[]>([]);
+    const [classDetail, setClassDetail] = useState<ClassDetailResponse | null>(null);
+    const [sessions, setSessions] = useState<SessionInfoDetail[]>([]);
     const [selectedSession, setSelectedSession] = useState<string | number>("");
     const [attendanceData, setAttendanceData] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -64,14 +61,17 @@ const TeacherAttendance: React.FC = () => {
             if (classId) {
                 try {
                     setLoading(true);
-                    const detail = await getTeacherClassDetailMock(classId);
+                    const detail = await getClassDetail(classId);
                     setClassDetail(detail);
-                    const sessionList = await getSessionsByClassIdMock(classId);
+                    const sessionList = detail.sessions || [];
                     setSessions(sessionList);
 
                     // Select the first pending session or the first session by default
+                    // Note: SessionInfoDetail has 'status' as string. Assuming 'Pending' or similar.
+                    // If status is not 'Completed', we might consider it pending.
                     if (sessionList.length > 0) {
-                        const pendingSession = sessionList.find((s: any) => s.status === "Pending");
+                        // Find first session that is not completed
+                        const pendingSession = sessionList.find((s) => s.status !== "Completed");
                         setSelectedSession(pendingSession ? pendingSession.sessionId : sessionList[0].sessionId);
                     }
                 } catch (error) {
@@ -89,11 +89,18 @@ const TeacherAttendance: React.FC = () => {
         const fetchAttendance = async () => {
             if (selectedSession) {
                 try {
-                    // In a real app, this would fetch existing attendance or initialize list
-                    const data = await getAttendanceBySessionIdMock(selectedSession);
-                    setAttendanceData(data);
+                    const data = await getAttendanceBySessionId(selectedSession);
+                    // Map API response to UI model
+                    const mappedData = data.entries.map((entry) => ({
+                        studentId: entry.studentId,
+                        fullName: entry.studentName,
+                        isAbsent: entry.absent,
+                        note: entry.note
+                    }));
+                    setAttendanceData(mappedData);
                 } catch (error) {
                     console.error("Error fetching attendance:", error);
+                    setAttendanceData([]);
                 }
             }
         };

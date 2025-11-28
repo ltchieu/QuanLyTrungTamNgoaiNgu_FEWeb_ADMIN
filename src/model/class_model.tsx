@@ -15,12 +15,13 @@ export interface CourseFilterData {
 }
 
 export interface LecturerFilterData {
-    lecturerId: number;
-    lecturerName: string;
+  lecturerId: number;
+  lecturerName: string;
 }
+
 export interface RoomFilterData {
-    roomId: number;
-    roomName: string;
+  roomId: number;
+  roomName: string;
 }
 
 export interface ClassCreationRequest {
@@ -35,11 +36,20 @@ export interface ClassCreationRequest {
   note?: string;
 }
 
-export interface SessionDetail {
+export interface SessionInfoDetail {
   sessionId: number;
   date: string;
   note: string;
-  status: boolean;
+  status: string;
+}
+
+export interface StudentInClass {
+  studentId: number;
+  fullName: string;
+  avatar: string;
+  gender: boolean;
+  email: string;
+  phone: string;
 }
 
 export interface ClassDetailResponse {
@@ -47,13 +57,51 @@ export interface ClassDetailResponse {
   className: string;
   courseName: string;
   schedulePattern: string;
-  startTime: string;       
+  startTime: string;
   endTime: string;
-  minutePerSession: number; 
+  minutePerSession: number;
   startDate: string;
-  endDate: string;      
+  endDate: string;
   roomName: string;
   instructorName: string;
   totalSessions: number;
-  sessions: SessionDetail[];
+  currentEnrollment: number;
+  maxCapacity: number;
+  students: StudentInClass[];
+  sessions: SessionInfoDetail[];
+}
+
+export interface ClassInfo {
+  classId: number;
+  className: string;
+  courseName: string;
+  roomName: string;
+  instructorName: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  schedulePattern: string;
+  status: string;
+  maxCapacity: number;
+  currentEnrollment: number;
+}
+
+export interface ClassResponse {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  classes: ClassInfo[];
+}
+
+export interface AttendanceEntryResponse {
+  studentId: number;
+  studentName: string;
+  absent: boolean;
+  note: string;
+}
+
+export interface AttendanceSessionResponse {
+  sessionId: number;
+  entries: AttendanceEntryResponse[];
 }
