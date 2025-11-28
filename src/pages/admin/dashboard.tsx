@@ -1,78 +1,107 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Container, Typography, Breadcrumbs, CircularProgress, Box, Grid } from "@mui/material";
+import { KPICards } from "../../component/dashboard/KPICards";
+import { RevenueChart } from "../../component/dashboard/RevenueChart";
+import { TopCourses } from "../../component/dashboard/TopCourses";
+import { PaymentMethodChart } from "../../component/dashboard/PaymentMethodChart";
+import { TrainingStats } from "../../component/dashboard/TrainingStats";
+import { LecturerStats } from "../../component/dashboard/LecturerStats";
 import {
-  Card,
-  CardContent,
-  Container,
-  Grid,
-  Typography,
-  Breadcrumbs,
-} from "@mui/material";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import PeopleIcon from "@mui/icons-material/People";
-import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import { SummaryCard } from "../../component/summary_card";
-import { SalesChart } from "../../component/sale_card";
-import { TrafficSourceChart } from "../../component/traffic_source";
+  getDashboardData,
+  DashboardData,
+} from "../../services/dashboard_service";
+
 
 const DashboardPage: React.FC = () => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await getDashboardData();
+        setData(result);
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!data) return null;
+
   return (
     <Container maxWidth={false} sx={{ py: 4 }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Typography color="text.primary">Dashboard</Typography>
       </Breadcrumbs>
+
       <Typography variant="h4" sx={{ mb: 4, fontWeight: "bold" }}>
-        Overview
+        Tổng quan
       </Typography>
-      <Grid container spacing={3}>
-        {/* Summary Cards */}
-        <Grid size={{ md: 3, sm: 6, xs: 12 }}>
-          <SummaryCard
-            title="Budget"
-            value="$24k"
-            icon={<AttachMoneyIcon />}
-            iconBgColor="primary.main"
-            change={12}
-          />
-        </Grid>
-        <Grid size={{ md: 3, sm: 6, xs: 12 }}>
-          <SummaryCard
-            title="Total Customers"
-            value="1.6k"
-            icon={<PeopleIcon />}
-            iconBgColor="success.main"
-            change={-16}
-          />
-        </Grid>
-        <Grid size={{ md: 3, sm: 6, xs: 12 }}>
 
-          <Card sx={{ height: "100%", borderRadius: 4, boxShadow: 3 }}>
-            <CardContent>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {/* 1. Overview (KPI Cards) */}
+        <section>
+          <KPICards data={data.kpi} />
+        </section>
 
-              <Typography color="text.secondary" variant="overline">
-                Task Progress
-              </Typography>
-              <Typography variant="h4">75.5%</Typography>
-              {/* Add a LinearProgress component here */}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ md: 3, sm: 6, xs: 12 }}>
-          <SummaryCard
-            title="Total Profit"
-            value="$15k"
-            icon={<MonetizationOnIcon />}
-            iconBgColor="warning.main"
+        {/* 2. Financial & Business Statistics */}
+        <section>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
+            Thống kê Kinh doanh & Tài chính
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid size={{ md: 8, xs: 12 }}>
+              <RevenueChart data={data.annualRevenue} />
+            </Grid>
+            <Grid size={{ md: 4, xs: 12 }}>
+              <PaymentMethodChart data={data.paymentMethods} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <TopCourses data={data.topCourses} />
+            </Grid>
+          </Grid>
+        </section>
+
+        {/* 3. Training Statistics */}
+        <section>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
+            Thống kê Đào tạo
+          </Typography>
+          <TrainingStats
+            occupancy={data.classOccupancy}
+            schedule={data.classSchedule}
+            attendance={data.attendanceRates}
           />
-        </Grid>
+        </section>
 
-        {/* Charts */}
-        <Grid size={{ md: 8, sm: 12, xs: 12 }}>
-          <SalesChart />
-        </Grid>
-        <Grid size={{ md: 4, sm: 6, xs: 12 }}>
-          <TrafficSourceChart />
-        </Grid>
-      </Grid>
+        {/* 4. Lecturer & Personnel Statistics */}
+        <section>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
+            Thống kê Giảng viên & Nhân sự
+          </Typography>
+          <LecturerStats
+            topLecturers={data.topLecturers}
+            distribution={data.lecturerDistribution}
+          />
+        </section>
+      </Box>
     </Container>
   );
 };

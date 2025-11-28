@@ -96,7 +96,6 @@ const Timetable: React.FC = () => {
     setLoading(true);
     try {
       const formattedDate = currentDate.format("YYYY-MM-DD");
-
       // Convert giá trị combobox: "" -> null, có giá trị -> number
       const lecturerId = selectedLecturer ? Number(selectedLecturer) : null;
       const roomId = selectedRoom ? Number(selectedRoom) : null;

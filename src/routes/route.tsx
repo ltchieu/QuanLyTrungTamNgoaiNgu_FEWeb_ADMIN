@@ -28,6 +28,17 @@ import TeacherAttendanceList from "../pages/teacher/attendance_list";
 import TeacherProfile from "../pages/teacher/profile";
 import Unauthorized from "../pages/unauthorized";
 
+function HomeRedirect() {
+  const { role } = useAuth();
+  if (role === 'ADMIN') {
+    return <DashboardPage />;
+  } else if (role === 'TEACHER') {
+    return <Navigate to="/teacher/dashboard" replace />;
+  } else {
+    return <Navigate to="/unauthorized" replace />;
+  }
+}
+
 function AppRoutes() {
   const { accessToken, role, isLoading } = useAuth();
 
@@ -36,12 +47,20 @@ function AppRoutes() {
   return (
     <div>
       <Routes>
+        {/* Common Authenticated Routes */}
+        {accessToken ? (
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomeRedirect />} />
+            </Route>
+          </Route>
+        ) : null}
+
         {/* Admin Routes - Only for ADMIN role */}
         {accessToken ? (
           <Route element={<RoleBasedRoute allowedRoles={['ADMIN']} />}>
             <Route element={<ProtectedRoute />}>
               <Route element={<MainLayout />}>
-                <Route path="/" element={<DashboardPage />}></Route>
                 <Route path="/courses" element={<Course />}></Route>
                 <Route path="/addCourse" element={<CreateCoursePage />}></Route>
                 <Route path="/editCourse/:id" element={<EditCourse />}></Route>
@@ -91,7 +110,7 @@ function AppRoutes() {
         {/* Catch-all route */}
         <Route
           path="*"
-          element={<Navigate to={accessToken ? (role === "TEACHER" ? "/teacher/dashboard" : "/") : "/login"} replace />}
+          element={<Navigate to={accessToken ? "/" : "/login"} replace />}
         ></Route>
       </Routes>
     </div>
