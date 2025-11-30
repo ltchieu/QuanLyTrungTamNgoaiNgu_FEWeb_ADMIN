@@ -28,6 +28,9 @@ import {
   Divider,
   Breadcrumbs,
   Link,
+  Tabs,
+  Tab,
+  Avatar,
 } from "@mui/material";
 // Sử dụng Grid v2
 import { Grid } from "@mui/material";
@@ -115,6 +118,12 @@ const EditClass: React.FC = () => {
   const [availableLecturers, setAvailableLecturers] = useState<
     ResourceOption[]
   >([]);
+
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
 
   // --- FORMIK SETUP ---
   const formik = useFormik({
@@ -454,460 +463,475 @@ const EditClass: React.FC = () => {
           </Button>
         </Stack>
 
-        <Grid container spacing={3}>
-          <Grid
-            size={{ xs: 12, md: showSidePanel ? 8 : 12 }}
-            sx={{ transition: "all 0.3s ease" }}
-          >
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ fontWeight: "bold", color: "primary.main" }}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs value={activeTab} onChange={handleTabChange} aria-label="class details tabs">
+            <Tab label="Thông tin chung" />
+            <Tab label="Danh sách học viên" />
+            <Tab label="Lịch trình chi tiết" />
+          </Tabs>
+        </Box>
+
+        {/* TAB 1: THÔNG TIN CHUNG */}
+        <div role="tabpanel" hidden={activeTab !== 0}>
+          {activeTab === 0 && (
+            <Grid container spacing={3}>
+              <Grid
+                size={{ xs: 12, md: showSidePanel ? 8 : 12 }}
+                sx={{ transition: "all 0.3s ease" }}
               >
-                Thông tin lớp học
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Tên lớp"
-                    value={formik.values.className}
-                    disabled
-                    variant="filled"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Khóa học"
-                    value={formik.values.courseName}
-                    disabled
-                    variant="filled"
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Thời lượng (phút)"
-                    name="durationMinutes"
-                    value={formik.values.durationMinutes}
-                    onChange={handleManualChange}
-                    error={Boolean(formik.errors.durationMinutes)}
-                    helperText={formik.errors.durationMinutes}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 8 }} container spacing={2}>
-                  <Grid size={{ xs: 6 }}>
-                    <TimePicker
-                      label="Giờ bắt đầu"
-                      value={
-                        formik.values.startTime
-                          ? dayjs(formik.values.startTime, "HH:mm")
-                          : null
-                      }
-                      onChange={(val) => {
-                        formik.setFieldValue(
-                          "startTime",
-                          val ? val.format("HH:mm") : ""
-                        );
-                        setSuggestionResult(null);
-                      }}
-                      slotProps={{ textField: { fullWidth: true } }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 6 }}>
-                    <TextField
-                      fullWidth
-                      label="Giờ kết thúc"
-                      value={calculatedEndTime}
-                      disabled
-                      variant="filled"
-                      helperText="Tự động tính toán"
-                    />
-                  </Grid>
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <DatePicker
-                    label="Ngày bắt đầu"
-                    value={
-                      formik.values.startDate
-                        ? dayjs(formik.values.startDate)
-                        : null
-                    }
-                    onChange={(val) => {
-                      formik.setFieldValue(
-                        "startDate",
-                        val ? val.format("YYYY-MM-DD") : ""
-                      );
-                      setSuggestionResult(null);
-                      // Timeout để trigger validation sau khi state update
-                      setTimeout(
-                        () => formik.validateField("schedulePattern"),
-                        0
-                      );
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: Boolean(formik.errors.startDate),
-                        helperText: formik.errors.startDate,
-                      },
-                    }}
-                  />
-                </Grid>
-
-                {/* Lịch học */}
-                <Grid size={12}>
-                  <FormControl
-                    component="fieldset"
-                    error={Boolean(formik.errors.schedulePattern)}
-                  >
-                    <FormLabel component="legend">
-                      Lịch học trong tuần
-                    </FormLabel>
-                    <FormGroup row>
-                      {DAY_OPTIONS.map((day) => {
-                        const isChecked = formik.values.schedulePattern
-                          .split("-")
-                          .includes(day.value);
-                        return (
-                          <FormControlLabel
-                            key={day.value}
-                            control={
-                              <Checkbox
-                                checked={isChecked}
-                                onChange={(e) =>
-                                  handleDayChange(day.value, e.target.checked)
-                                }
-                              />
-                            }
-                            label={day.label}
-                          />
-                        );
-                      })}
-                    </FormGroup>
-                    {formik.errors.schedulePattern && (
-                      <Typography variant="caption" color="error">
-                        {formik.errors.schedulePattern}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid size={12}>
-                  <Button
-                    variant="outlined"
-                    onClick={handleCheckSchedule}
-                    disabled={isChecking || !isFormChanged}
-                    fullWidth
-                    color={isFormChanged ? "primary" : "inherit"}
-                    sx={{
-                      borderStyle: "dashed",
-                      borderWidth: 2,
-                      opacity: isFormChanged ? 1 : 0.7,
-                    }}
-                  >
-                    {isChecking
-                      ? "Đang kiểm tra..."
-                      : isFormChanged
-                        ? "Kiểm tra lịch & Tìm phòng trống"
-                        : "Thông tin chưa thay đổi"}
-                  </Button>
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Phòng học"
-                    name="roomId"
-                    value={formik.values.roomId}
-                    onChange={formik.handleChange}
-                    disabled={availableRooms.length === 0}
-                    helperText={
-                      availableRooms.length === 0
-                        ? "Vui lòng kiểm tra lịch trước"
-                        : ""
-                    }
-                    error={Boolean(formik.errors.roomId)}
-                  >
-                    {availableRooms.map((r) => (
-                      <MenuItem key={r.id} value={r.id}>
-                        {r.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Giảng viên"
-                    name="lecturerId"
-                    value={formik.values.lecturerId}
-                    onChange={formik.handleChange}
-                    disabled={availableLecturers.length === 0}
-                    helperText={
-                      availableLecturers.length === 0
-                        ? "Vui lòng kiểm tra lịch trước"
-                        : ""
-                    }
-                    error={Boolean(formik.errors.lecturerId)}
-                  >
-                    {availableLecturers.map((l) => (
-                      <MenuItem key={l.id} value={l.id}>
-                        {l.name}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Paper>
-          </Grid>
-
-          {/* PANEL CONFLICT / GỢI Ý */}
-          {showSidePanel && (
-            <Grid
-              size={{ xs: 12, md: 4 }}
-              sx={{
-                animation: "fadeIn 0.5s ease-in-out",
-                "@keyframes fadeIn": {
-                  "0%": { opacity: 0 },
-                  "100%": { opacity: 1 },
-                },
-              }}
-            >
-              {suggestionResult?.status === "CONFLICT" ? (
-                <Paper
-                  sx={{ p: 2, bgcolor: "#fff3e0", border: "1px solid #ffcc80" }}
-                >
-                  <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-                    <Typography
-                      variant="h6"
-                      color="warning.main"
-                      fontWeight="bold"
-                    >
-                      Phát hiện xung đột
-                    </Typography>
-                  </Stack>
-                  <Alert severity="warning" sx={{ mb: 2 }}>
-                    {suggestionResult.message}
-                  </Alert>
-
-                  {/* Lý do conflict */}
-                  <Box mt={1}>
-                    {suggestionResult.initialCheck.roomConflicts?.map(
-                      (c, i) => (
-                        <Typography
-                          key={`rc-${i}`}
-                          variant="caption"
-                          display="block"
-                          color="error"
-                        >
-                          • {c.description}
-                        </Typography>
-                      )
-                    )}
-                    {suggestionResult.initialCheck.lecturerConflicts?.map(
-                      (c, i) => (
-                        <Typography
-                          key={`lc-${i}`}
-                          variant="caption"
-                          display="block"
-                          color="error"
-                        >
-                          • {c.description}
-                        </Typography>
-                      )
-                    )}
-                  </Box>
-
-                  <Divider sx={{ my: 2 }} />
+                <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography
-                    variant="subtitle2"
+                    variant="h6"
                     gutterBottom
-                    sx={{ fontWeight: "bold" }}
+                    sx={{ fontWeight: "bold", color: "primary.main" }}
                   >
-                    Gợi ý thay thế:
+                    Thông tin lớp học
                   </Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        fullWidth
+                        label="Tên lớp"
+                        value={formik.values.className}
+                        disabled
+                        variant="filled"
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        fullWidth
+                        label="Khóa học"
+                        value={formik.values.courseName}
+                        disabled
+                        variant="filled"
+                      />
+                    </Grid>
 
-                  <Stack
-                    spacing={1}
-                    sx={{ maxHeight: 400, overflowY: "auto", pr: 0.5 }}
-                  >
-                    {suggestionResult.alternatives.map((alt, index) => (
-                      <Card
-                        key={index}
-                        variant="outlined"
-                        sx={{
-                          minHeight: "80px",
-                          borderColor:
-                            alt.priority > 100 ? "success.main" : "grey.300",
-                          bgcolor:
-                            alt.priority > 100 ? "#f0fdf4" : "background.paper",
-                          borderWidth: alt.priority > 100 ? 2 : 1,
-                          transition: "all 0.2s",
-                          "&:hover": {
-                            borderColor: "primary.main",
-                            boxShadow: 2,
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Thời lượng (phút)"
+                        name="durationMinutes"
+                        value={formik.values.durationMinutes}
+                        onChange={handleManualChange}
+                        error={Boolean(formik.errors.durationMinutes)}
+                        helperText={formik.errors.durationMinutes}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 8 }} container spacing={2}>
+                      <Grid size={{ xs: 6 }}>
+                        <TimePicker
+                          label="Giờ bắt đầu"
+                          value={
+                            formik.values.startTime
+                              ? dayjs(formik.values.startTime, "HH:mm")
+                              : null
+                          }
+                          onChange={(val) => {
+                            formik.setFieldValue(
+                              "startTime",
+                              val ? val.format("HH:mm") : ""
+                            );
+                            setSuggestionResult(null);
+                          }}
+                          slotProps={{ textField: { fullWidth: true } }}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Giờ kết thúc"
+                          value={calculatedEndTime}
+                          disabled
+                          variant="filled"
+                          helperText="Tự động tính toán"
+                        />
+                      </Grid>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <DatePicker
+                        label="Ngày bắt đầu"
+                        value={
+                          formik.values.startDate
+                            ? dayjs(formik.values.startDate)
+                            : null
+                        }
+                        onChange={(val) => {
+                          formik.setFieldValue(
+                            "startDate",
+                            val ? val.format("YYYY-MM-DD") : ""
+                          );
+                          setSuggestionResult(null);
+                          // Timeout để trigger validation sau khi state update
+                          setTimeout(
+                            () => formik.validateField("schedulePattern"),
+                            0
+                          );
+                        }}
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            error: Boolean(formik.errors.startDate),
+                            helperText: formik.errors.startDate,
                           },
                         }}
+                      />
+                    </Grid>
+
+                    {/* Lịch học */}
+                    <Grid size={12}>
+                      <FormControl
+                        component="fieldset"
+                        error={Boolean(formik.errors.schedulePattern)}
                       >
-                        <CardActionArea
-                          onClick={() => applyAlternative(alt)}
-                          sx={{ height: "100%" }}
-                        >
-                          <CardContent
-                            sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}
-                          >
-                            <Grid container spacing={1} alignItems="center">
-                              <Grid size={{ xs: 12, sm: 9 }}>
-                                <Stack direction="column" spacing={0.5}>
-                                  <Box
-                                    display="flex"
-                                    alignItems="center"
-                                    gap={1}
-                                  >
-                                    <Chip
-                                      label={
-                                        alt.type
-                                          ? alt.type.replace("ALTERNATIVE_", "")
-                                          : "GỢI Ý"
-                                      }
-                                      size="small"
-                                      color={
-                                        alt.priority > 100
-                                          ? "success"
-                                          : "primary"
-                                      }
-                                      sx={{
-                                        fontWeight: "bold",
-                                        fontSize: "0.7rem",
-                                        height: 20,
-                                      }}
-                                    />
-                                    {alt.priority > 100 && (
-                                      <Chip
-                                        label="Ưu tiên"
-                                        size="small"
-                                        color="error"
-                                        variant="outlined"
-                                        sx={{ height: 20, fontSize: "0.65rem" }}
-                                      />
-                                    )}
-                                  </Box>
-                                  <Typography
-                                    variant="body2"
-                                    fontWeight="bold"
-                                    sx={{ lineHeight: 1.3 }}
-                                  >
-                                    {alt.reason ||
-                                      "Phương án thay thế khả dụng"}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 0.5,
-                                    }}
-                                  >
-                                    <span>
-                                      <FontAwesomeIcon icon={faCalendar} />{" "}
-                                      {alt.startDate}
-                                    </span>
-                                    <span>•</span>
-                                    <span>
-                                      <FontAwesomeIcon icon={faClock} />{" "}
-                                      {alt.startTime} - {alt.endTime}
-                                    </span>
-                                  </Typography>
-                                </Stack>
-                              </Grid>
-                              <Grid
-                                size={{ xs: 12, sm: 3 }}
-                                sx={{ textAlign: "right" }}
-                              >
-                                <Typography
-                                  variant="caption"
-                                  display="block"
-                                  fontWeight="bold"
-                                  color="primary.main"
-                                  sx={{ mb: 0.5 }}
-                                >
-                                  {alt.schedulePattern}
-                                </Typography>
-                                <Button
-                                  size="small"
-                                  variant="contained"
-                                  color="primary"
-                                  sx={{
-                                    fontSize: "0.7rem",
-                                    py: 0.5,
-                                    minWidth: "60px",
-                                  }}
-                                >
-                                  Chọn
-                                </Button>
-                              </Grid>
-                            </Grid>
-                          </CardContent>
-                        </CardActionArea>
-                      </Card>
-                    ))}
-                  </Stack>
+                        <FormLabel component="legend">
+                          Lịch học trong tuần
+                        </FormLabel>
+                        <FormGroup row>
+                          {DAY_OPTIONS.map((day) => {
+                            const isChecked = formik.values.schedulePattern
+                              .split("-")
+                              .includes(day.value);
+                            return (
+                              <FormControlLabel
+                                key={day.value}
+                                control={
+                                  <Checkbox
+                                    checked={isChecked}
+                                    onChange={(e) =>
+                                      handleDayChange(day.value, e.target.checked)
+                                    }
+                                  />
+                                }
+                                label={day.label}
+                              />
+                            );
+                          })}
+                        </FormGroup>
+                        {formik.errors.schedulePattern && (
+                          <Typography variant="caption" color="error">
+                            {formik.errors.schedulePattern}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid size={12}>
+                      <Button
+                        variant="outlined"
+                        onClick={handleCheckSchedule}
+                        disabled={isChecking || !isFormChanged}
+                        fullWidth
+                        color={isFormChanged ? "primary" : "inherit"}
+                        sx={{
+                          borderStyle: "dashed",
+                          borderWidth: 2,
+                          opacity: isFormChanged ? 1 : 0.7,
+                        }}
+                      >
+                        {isChecking
+                          ? "Đang kiểm tra..."
+                          : isFormChanged
+                            ? "Kiểm tra lịch & Tìm phòng trống"
+                            : "Thông tin chưa thay đổi"}
+                      </Button>
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        select
+                        fullWidth
+                        label="Phòng học"
+                        name="roomId"
+                        value={formik.values.roomId}
+                        onChange={formik.handleChange}
+                        disabled={availableRooms.length === 0}
+                        helperText={
+                          availableRooms.length === 0
+                            ? "Vui lòng kiểm tra lịch trước"
+                            : ""
+                        }
+                        error={Boolean(formik.errors.roomId)}
+                      >
+                        {availableRooms.map((r) => (
+                          <MenuItem key={r.id} value={r.id}>
+                            {r.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <TextField
+                        select
+                        fullWidth
+                        label="Giảng viên"
+                        name="lecturerId"
+                        value={formik.values.lecturerId}
+                        onChange={formik.handleChange}
+                        disabled={availableLecturers.length === 0}
+                        helperText={
+                          availableLecturers.length === 0
+                            ? "Vui lòng kiểm tra lịch trước"
+                            : ""
+                        }
+                        error={Boolean(formik.errors.lecturerId)}
+                      >
+                        {availableLecturers.map((l) => (
+                          <MenuItem key={l.id} value={l.id}>
+                            {l.name}
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                  </Grid>
                 </Paper>
-              ) : (
-                <Paper
-                  sx={{ p: 2, bgcolor: "#e8f5e9", border: "1px solid #a5d6a7" }}
+              </Grid>
+
+              {/* PANEL CONFLICT / GỢI Ý */}
+              {showSidePanel && (
+                <Grid
+                  size={{ xs: 12, md: 4 }}
+                  sx={{
+                    animation: "fadeIn 0.5s ease-in-out",
+                    "@keyframes fadeIn": {
+                      "0%": { opacity: 0 },
+                      "100%": { opacity: 1 },
+                    },
+                  }}
                 >
-                  <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-                    <Typography
-                      variant="h6"
-                      color="success.main"
-                      fontWeight="bold"
+                  {suggestionResult?.status === "CONFLICT" ? (
+                    <Paper
+                      sx={{ p: 2, bgcolor: "#fff3e0", border: "1px solid #ffcc80" }}
                     >
-                      Lịch hợp lệ
-                    </Typography>
-                  </Stack>
-                  <Alert
-                    severity="success"
-                    variant="standard"
-                    sx={{ bgcolor: "transparent", p: 0, mb: 2 }}
-                  >
-                    Lịch học khả dụng! Đã tìm thấy{" "}
-                    <b>{availableRooms.length}</b> phòng và{" "}
-                    <b>{availableLecturers.length}</b> giảng viên phù hợp.
-                  </Alert>
-                  <Button
-                    variant="outlined"
-                    color="success"
-                    size="small"
-                    onClick={() => {
-                      document
-                        .querySelector('input[name="roomId"]')
-                        ?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "center",
-                        });
-                    }}
-                  >
-                    Chọn ngay
-                  </Button>
-                </Paper>
+                      <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+                        <Typography
+                          variant="h6"
+                          color="warning.main"
+                          fontWeight="bold"
+                        >
+                          Phát hiện xung đột
+                        </Typography>
+                      </Stack>
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        {suggestionResult.message}
+                      </Alert>
+
+                      {/* Lý do conflict */}
+                      <Box mt={1}>
+                        {suggestionResult.initialCheck.roomConflicts?.map(
+                          (c, i) => (
+                            <Typography
+                              key={`rc-${i}`}
+                              variant="caption"
+                              display="block"
+                              color="error"
+                            >
+                              • {c.description}
+                            </Typography>
+                          )
+                        )}
+                        {suggestionResult.initialCheck.lecturerConflicts?.map(
+                          (c, i) => (
+                            <Typography
+                              key={`lc-${i}`}
+                              variant="caption"
+                              display="block"
+                              color="error"
+                            >
+                              • {c.description}
+                            </Typography>
+                          )
+                        )}
+                      </Box>
+
+                      <Divider sx={{ my: 2 }} />
+                      <Typography
+                        variant="subtitle2"
+                        gutterBottom
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        Gợi ý thay thế:
+                      </Typography>
+
+                      <Stack
+                        spacing={1}
+                        sx={{ maxHeight: 400, overflowY: "auto", pr: 0.5 }}
+                      >
+                        {suggestionResult.alternatives.map((alt, index) => (
+                          <Card
+                            key={index}
+                            variant="outlined"
+                            sx={{
+                              minHeight: "80px",
+                              borderColor:
+                                alt.priority > 100 ? "success.main" : "grey.300",
+                              bgcolor:
+                                alt.priority > 100 ? "#f0fdf4" : "background.paper",
+                              borderWidth: alt.priority > 100 ? 2 : 1,
+                              transition: "all 0.2s",
+                              "&:hover": {
+                                borderColor: "primary.main",
+                                boxShadow: 2,
+                              },
+                            }}
+                          >
+                            <CardActionArea
+                              onClick={() => applyAlternative(alt)}
+                              sx={{ height: "100%" }}
+                            >
+                              <CardContent
+                                sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}
+                              >
+                                <Grid container spacing={1} alignItems="center">
+                                  <Grid size={{ xs: 12, sm: 9 }}>
+                                    <Stack direction="column" spacing={0.5}>
+                                      <Box
+                                        display="flex"
+                                        alignItems="center"
+                                        gap={1}
+                                      >
+                                        <Chip
+                                          label={
+                                            alt.type
+                                              ? alt.type.replace("ALTERNATIVE_", "")
+                                              : "GỢI Ý"
+                                          }
+                                          size="small"
+                                          color={
+                                            alt.priority > 100
+                                              ? "success"
+                                              : "primary"
+                                          }
+                                          sx={{
+                                            fontWeight: "bold",
+                                            fontSize: "0.7rem",
+                                            height: 20,
+                                          }}
+                                        />
+                                        {alt.priority > 100 && (
+                                          <Chip
+                                            label="Ưu tiên"
+                                            size="small"
+                                            color="error"
+                                            variant="outlined"
+                                            sx={{ height: 20, fontSize: "0.65rem" }}
+                                          />
+                                        )}
+                                      </Box>
+                                      <Typography
+                                        variant="body2"
+                                        fontWeight="bold"
+                                        sx={{ lineHeight: 1.3 }}
+                                      >
+                                        {alt.reason ||
+                                          "Phương án thay thế khả dụng"}
+                                      </Typography>
+                                      <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                        sx={{
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: 0.5,
+                                        }}
+                                      >
+                                        <span>
+                                          <FontAwesomeIcon icon={faCalendar} />{" "}
+                                          {alt.startDate}
+                                        </span>
+                                        <span>•</span>
+                                        <span>
+                                          <FontAwesomeIcon icon={faClock} />{" "}
+                                          {alt.startTime} - {alt.endTime}
+                                        </span>
+                                      </Typography>
+                                    </Stack>
+                                  </Grid>
+                                  <Grid
+                                    size={{ xs: 12, sm: 3 }}
+                                    sx={{ textAlign: "right" }}
+                                  >
+                                    <Typography
+                                      variant="caption"
+                                      display="block"
+                                      fontWeight="bold"
+                                      color="primary.main"
+                                      sx={{ mb: 0.5 }}
+                                    >
+                                      {alt.schedulePattern}
+                                    </Typography>
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      color="primary"
+                                      sx={{
+                                        fontSize: "0.7rem",
+                                        py: 0.5,
+                                        minWidth: "60px",
+                                      }}
+                                    >
+                                      Chọn
+                                    </Button>
+                                  </Grid>
+                                </Grid>
+                              </CardContent>
+                            </CardActionArea>
+                          </Card>
+                        ))}
+                      </Stack>
+                    </Paper>
+                  ) : (
+                    <Paper
+                      sx={{ p: 2, bgcolor: "#e8f5e9", border: "1px solid #a5d6a7" }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+                        <Typography
+                          variant="h6"
+                          color="success.main"
+                          fontWeight="bold"
+                        >
+                          Lịch hợp lệ
+                        </Typography>
+                      </Stack>
+                      <Alert
+                        severity="success"
+                        variant="standard"
+                        sx={{ bgcolor: "transparent", p: 0, mb: 2 }}
+                      >
+                        Lịch học khả dụng! Đã tìm thấy{" "}
+                        <b>{availableRooms.length}</b> phòng và{" "}
+                        <b>{availableLecturers.length}</b> giảng viên phù hợp.
+                      </Alert>
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        size="small"
+                        onClick={() => {
+                          document
+                            .querySelector('input[name="roomId"]')
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center",
+                            });
+                        }}
+                      >
+                        Chọn ngay
+                      </Button>
+                    </Paper>
+                  )}
+                </Grid>
               )}
             </Grid>
           )}
+        </div>
 
-          {classDetail &&
-            classDetail.sessions &&
-            classDetail.sessions.length > 0 && (
+        {/* TAB 2: DANH SÁCH HỌC VIÊN */}
+        <div role="tabpanel" hidden={activeTab !== 1}>
+          {activeTab === 1 && (
+            <Grid container spacing={3}>
               <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 3, borderRadius: 2 }}>
                   <Typography
@@ -916,7 +940,72 @@ const EditClass: React.FC = () => {
                     color="primary.main"
                     sx={{ mb: 2 }}
                   >
-                    Danh sách buổi học ({classDetail.totalSessions} buổi)
+                    Danh sách học viên ({classDetail?.students?.length || 0})
+                  </Typography>
+                  <TableContainer sx={{ maxHeight: 400 }}>
+                    <Table stickyHeader size="small">
+                      <TableHead>
+                        <TableRow
+                          sx={{
+                            "& th": {
+                              fontWeight: "bold",
+                              backgroundColor: "#f5f5f5",
+                            },
+                          }}
+                        >
+                          <TableCell align="center" width="80">STT</TableCell>
+                          <TableCell>Học viên</TableCell>
+                          <TableCell>Email</TableCell>
+                          <TableCell>Số điện thoại</TableCell>
+                          <TableCell align="center">Giới tính</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {classDetail?.students?.map((student, index) => (
+                          <TableRow key={student.studentId} hover>
+                            <TableCell align="center">{index + 1}</TableCell>
+                            <TableCell>
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                <Avatar src={student.avatar} alt={student.fullName} />
+                                <Typography variant="body2">{student.fullName}</Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell>{student.email}</TableCell>
+                            <TableCell>{student.phone}</TableCell>
+                            <TableCell align="center">
+                              {student.gender ? "Nam" : "Nữ"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {(!classDetail?.students || classDetail.students.length === 0) && (
+                          <TableRow>
+                            <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                              Chưa có học viên nào
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Grid>
+            </Grid>
+          )}
+        </div>
+
+        {/* TAB 3: LỊCH TRÌNH CHI TIẾT */}
+        <div role="tabpanel" hidden={activeTab !== 2}>
+          {activeTab === 2 && (
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12 }}>
+                <Paper sx={{ p: 3, borderRadius: 2 }}>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    color="primary.main"
+                    sx={{ mb: 2 }}
+                  >
+                    Danh sách buổi học ({classDetail?.totalSessions || 0} buổi)
                   </Typography>
                   <TableContainer sx={{ maxHeight: 400 }}>
                     <Table stickyHeader size="small">
@@ -938,7 +1027,7 @@ const EditClass: React.FC = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {classDetail.sessions.map((session, index) => (
+                        {classDetail?.sessions?.map((session, index) => (
                           <TableRow key={session.sessionId} hover>
                             <TableCell align="center">{index + 1}</TableCell>
                             <TableCell>
@@ -960,13 +1049,21 @@ const EditClass: React.FC = () => {
                             </TableCell>
                           </TableRow>
                         ))}
+                        {(!classDetail?.sessions || classDetail.sessions.length === 0) && (
+                          <TableRow>
+                            <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
+                              Chưa có lịch trình
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   </TableContainer>
                 </Paper>
               </Grid>
-            )}
-        </Grid>
+            </Grid>
+          )}
+        </div>
       </Box>
     </LocalizationProvider>
   );

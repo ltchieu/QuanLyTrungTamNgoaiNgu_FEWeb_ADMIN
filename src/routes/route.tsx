@@ -26,6 +26,8 @@ import TeacherClassDetail from "../pages/teacher/class_detail";
 import TeacherAttendance from "../pages/teacher/attendance";
 import TeacherAttendanceList from "../pages/teacher/attendance_list";
 import TeacherProfile from "../pages/teacher/profile";
+import CategoryPage from "../pages/admin/category_page";
+import RoomPage from "../pages/admin/room_page";
 import Unauthorized from "../pages/unauthorized";
 
 function HomeRedirect() {
@@ -75,6 +77,8 @@ function AppRoutes() {
                 <Route path="/teachers" element={<TeacherListPage />}></Route>
                 <Route path="/teachers/add" element={<AddTeacherPage />}></Route>
                 <Route path="/teachers/:id" element={<TeacherDetailPage />}></Route>
+                <Route path="/categories" element={<CategoryPage />}></Route>
+                <Route path="/rooms" element={<RoomPage />}></Route>
               </Route>
             </Route>
           </Route>
