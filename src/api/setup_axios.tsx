@@ -9,7 +9,7 @@ export const setupAxiosInterceptors = (
   logout: LogoutFn,
   refreshAccessTokenFn: RefreshAccessTokenFn
 ) => {
-  axiosClient.interceptors.request.use(
+  const reqInterceptorId = axiosClient.interceptors.request.use(
     (config) => {
       const token = getAccessToken();
       if (token && !config.headers.Authorization) {
@@ -21,7 +21,7 @@ export const setupAxiosInterceptors = (
     (error) => Promise.reject(error)
   );
 
-  axiosClient.interceptors.response.use(
+  const resInterceptorId = axiosClient.interceptors.response.use(
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
@@ -46,4 +46,9 @@ export const setupAxiosInterceptors = (
       return Promise.reject(error);
     }
   );
+
+  return () => {
+    axiosClient.interceptors.request.eject(reqInterceptorId);
+    axiosClient.interceptors.response.eject(resInterceptorId);
+  };
 };

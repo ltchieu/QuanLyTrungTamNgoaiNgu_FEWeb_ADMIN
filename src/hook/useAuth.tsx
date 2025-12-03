@@ -68,12 +68,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   useEffect(() => {
-    setupAxiosInterceptors(
+    const cleanup = setupAxiosInterceptors(
       () => accessToken,
       logout,
       refreshAccessToken
     );
+    return cleanup;
+  }, [accessToken, logout, refreshAccessToken]);
 
+  useEffect(() => {
     // Khi tải trang, chỉ thử refresh token
     const tryLoadSession = async () => {
       try {
@@ -86,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     tryLoadSession();
-  }, [accessToken, logout, refreshAccessToken]);
+  }, [refreshAccessToken]);
 
   if (isLoading) {
     return <div>Loading session...</div>;
