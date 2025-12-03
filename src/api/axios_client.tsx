@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/";
+
 export const axiosClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -9,7 +11,7 @@ export const axiosClient = axios.create({
 });
 
 export const axiosMultipart = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "multipart/form-data",
@@ -18,7 +20,7 @@ export const axiosMultipart = axios.create({
 
 //axios dùng cho refresh token
 export const axiosRaw = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: BASE_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
